@@ -1,8 +1,12 @@
 import express from 'express';
-import { apolloServer } from 'graphql-tools';
+
 import Schema from './data/schema';
-import Resolvers from './data/resolvers';
 import Mocks from './data/mocks';
+import Resolvers from './data/resolvers';
+
+import { apolloExpress, graphiqlExpress } from 'apollo-server';
+import { makeExecutableSchema, addMockFunctionsToSchema} from 'graphql-tools';
+import bodyParser from 'body-parser';
 
 import dotenv from 'dotenv';
 
@@ -10,14 +14,25 @@ const config = dotenv.config();
 
 const graphQLServer = express();
 
-graphQLServer.use('/graphql', apolloServer({
-  graphiql: true,
-  pretty: true,
-  schema: Schema,
-  resolvers: Resolvers,
-  allowUndefinedInResolve: false,
-  printErrors: true,
-  mocks: Mocks,
+const executableSchema = makeExecutableSchema({
+	typeDefs: Schema,
+	resolvers: Resolvers,
+	// connectors: connectors,
+});
+
+addMockFunctionsToSchema({
+	schema: executableSchema,
+	mocks: Mocks,
+	preserveResolvers: true,
+});
+
+graphQLServer.use('/graphql', bodyParser.json(), apolloExpress({
+  schema: executableSchema,
+  context: {},
+}));
+
+graphQLServer.use('/graphiql', graphiqlExpress({
+	endpointURL: '/graphql',
 }));
 
 graphQLServer.listen(process.env.GRAPHQL_PORT, () => console.log(
