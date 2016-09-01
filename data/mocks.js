@@ -12,6 +12,15 @@ const mocks = {
 		ein: () => casual.integer(1, 100000000),
 		name: () => casual.company_name,
 	}),
+	Form990: () => ({
+		id: () => casual.integer(1, 10000),
+		ein: () => casual.integer(1, 100000000),
+		irs_year: () => casual.year,
+		tax_period: () => casual.date,
+		total_revenue: () => casual.integer(1, 1000000000),
+		total_expenses: () => casual.integer(1, 1000000000),
+		total_assets: () => casual.integer(1, 1000000000),
+	}),
 	Grant: () => ({
 		id: () => casual.integer(1, 10000),
 		ein: () => casual.integer(1, 100000000),
@@ -20,9 +29,9 @@ const mocks = {
 		id: () => casual.integer(1, 10000),
 		ein: () => casual.integer(1, 100000000),
 		desc: () => casual.sentences(5),
-		data: () => casual.date,
+		date: () => casual.date,
 		link: () => casual.url,
 	}),
 };
 
-export default [mocks];
+export default mocks;

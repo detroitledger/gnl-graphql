@@ -1,4 +1,4 @@
-const typeDefinitions = `
+const typeDefinitions = [`
 type Organization {
 	orgId: Int
 	ein: Int
@@ -41,6 +41,6 @@ type Query {
 schema {
 	query: Query
 }
-`;
+`];
 
-export default [typeDefinitions];
+export default typeDefinitions;

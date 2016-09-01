@@ -1,19 +1,34 @@
 const resolvers = {
 	Query: {
-		organization(_, args) {
+		organization(root, args) {
+			return {};
+		},
+	},
+	Organization: {
+		forms990(organization) {
+			return {};
+		},
+		grants(organization) {
+			return {};
+		},
+		newsArticles(organization) {
 			return {};
 		},
 	},
 	Form990: {
-		forms990(organization) {
-			return 
-		}
+		organization(forms990) {
+			return {};
+		},
 	},
 	Grant: {
-
+		organization(grants) {
+			return {};
+		},
 	}, 
 	NewsArticle: {
-
+		organization(newsArticles) {
+			return {};
+		},
 	},
 };
 
