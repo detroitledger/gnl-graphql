@@ -1,7 +1,7 @@
 import casual from 'casual';
 
 const grantMockIterator = {};
-grantMockIterator[Symbol.iterator] = function* () {
+grantMockIterator[Symbol.iterator] = function* iter() {
 	let next = 0;
 	while (next < 10) {
 		next++;
@@ -13,7 +13,7 @@ const mocks = {
 	String: () => 'Hello world',
 	Query: () => ({
 		organization: (root, args) => {
-			return { ein: args.ein }
+			return { ein: args.ein };
 		},
 	}),
 	Organization: () => ({
@@ -45,3 +45,4 @@ const mocks = {
 };
 
 export default mocks;
+

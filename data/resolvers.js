@@ -8,7 +8,7 @@ const resolvers = {
 		forms990(organization) {
 			return {};
 		},
-		grants: function* (org) {
+		* grants(org) {
 			yield 'whatever';
 		},
 		newsArticles(organization) {
@@ -24,7 +24,7 @@ const resolvers = {
 		organization(grants) {
 			return {};
 		},
-	}, 
+	},
 	NewsArticle: {
 		organization(newsArticles) {
 			return {};
@@ -33,3 +33,4 @@ const resolvers = {
 };
 
 export default resolvers;
+
