@@ -8,8 +8,8 @@ const resolvers = {
 		forms990(organization) {
 			return {};
 		},
-		grants(organization) {
-			return {};
+		grants: function* (org) {
+			yield 'whatever';
 		},
 		newsArticles(organization) {
 			return {};

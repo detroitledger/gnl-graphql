@@ -19,15 +19,15 @@ const executableSchema = makeExecutableSchema({
 	resolvers: Resolvers,
 });
 
+//addResolveFunctionsToSchema({
+//	schema: executableSchema,
+//	resolveFunctions: Resolvers,
+//});
+
 addMockFunctionsToSchema({
 	schema: executableSchema,
 	mocks: Mocks,
 	preserveResolvers: true,
-});
-
-addResolveFunctionsToSchema({
-	schema: executableSchema,
-	resolveFunctions: Resolvers,
 });
 
 graphQLServer.use('/graphql', bodyParser.json(), apolloExpress({

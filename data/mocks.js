@@ -1,5 +1,14 @@
 import casual from 'casual';
 
+const grantMockIterator = {};
+grantMockIterator[Symbol.iterator] = function* () {
+	let next = 0;
+	while (next < 10) {
+		next++;
+		yield mocks.Grant();
+	}
+};
+
 const mocks = {
 	String: () => 'Hello world',
 	Query: () => ({
@@ -11,6 +20,7 @@ const mocks = {
 		orgId: () => casual.integer(1, 10000),
 		ein: () => casual.integer(1, 100000000),
 		name: () => casual.company_name,
+		grants: () => grantMockIterator,
 	}),
 	Form990: () => ({
 		id: () => casual.integer(1, 10000),
