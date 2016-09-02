@@ -1,12 +1,15 @@
 import casual from 'casual';
 
-const grantMockIterator = {};
-grantMockIterator[Symbol.iterator] = function* iter() {
-	let next = 0;
-	while (next < 10) {
-		next++;
-		yield mocks.Grant();
-	}
+const createIterator = function(typeName, limit, offset) {
+	const mockIterator = {};
+	mockIterator[Symbol.iterator] = function* iter() {
+		let next = 0;
+		while (next < limit) {
+			next++;
+			yield mocks[typeName]();
+		}
+	};
+	return mockIterator;
 };
 
 const mocks = {
@@ -20,7 +23,15 @@ const mocks = {
 		orgId: () => casual.integer(1, 10000),
 		ein: () => casual.integer(1, 100000000),
 		name: () => casual.company_name,
-		grants: () => grantMockIterator,
+		forms990: (root, args) => {
+			return createIterator('Form990', args.limit, args.offset);
+		},
+		grants: (root, args) => {
+			return createIterator('Grant', args.limit, args.offset);
+		},
+		newsArticles: (root, args) => {
+			return createIterator('NewsArticle', args.limit, args.offset);
+		},
 	}),
 	Form990: () => ({
 		id: () => casual.integer(1, 10000),
@@ -45,4 +56,3 @@ const mocks = {
 };
 
 export default mocks;
-

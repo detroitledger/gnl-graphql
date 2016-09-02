@@ -3,9 +3,9 @@ type Organization {
 	orgId: Int
 	ein: Int
 	name: String
-	forms990: [Form990]
-	grants: [Grant]
-	newsArticles: [NewsArticle]
+	forms990(limit: Int = 5, offset: Int = 0): [Form990]
+	grants(limit: Int = 5, offset: Int = 0): [Grant]
+	newsArticles(limit: Int = 5, offset: Int = 0): [NewsArticle]
 }
 
 type Form990 {
@@ -44,4 +44,3 @@ schema {
 `];
 
 export default typeDefinitions;
-

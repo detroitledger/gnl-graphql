@@ -5,13 +5,13 @@ const resolvers = {
 		},
 	},
 	Organization: {
-		forms990(organization) {
+		forms990(root, args) {
 			return {};
 		},
-		* grants(org) {
+		* grants(root, args) {
 			yield 'whatever';
 		},
-		newsArticles(organization) {
+		newsArticles(root, args) {
 			return {};
 		},
 	},
@@ -33,4 +33,3 @@ const resolvers = {
 };
 
 export default resolvers;
-
