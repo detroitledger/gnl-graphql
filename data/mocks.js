@@ -14,7 +14,7 @@ const createIterator = function(typeName, limit, offset) {
 
 const mocks = {
 	String: () => 'Hello world',
-	Query: () => ({
+/*	Query: () => ({
 		organization: (root, args) => {
 			return { ein: args.ein };
 		},
@@ -32,7 +32,7 @@ const mocks = {
 		newsArticles: (root, args) => {
 			return createIterator('NewsArticle', args.limit, args.offset);
 		},
-	}),
+	}),*/
 	Form990: () => ({
 		id: () => casual.integer(1, 10000),
 		ein: () => casual.integer(1, 100000000),
