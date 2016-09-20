@@ -1,9 +1,7 @@
-import { Organization } from './connectors';
-
 const resolvers = {
 	Query: {
-		organization(root, args) {
-			return Organization.findAll({ where: args });
+		organization(root, args, context) {
+			return context.connectors.Organization.get(args.ein);
 		},
 	},
 	Organization: {

@@ -1,8 +1,7 @@
 const typeDefinitions = [`
 type Organization {
-	orgId: Int
-	ein: Int
-	name: String
+	id: Int
+	ein: String
 	forms990(limit: Int = 5, offset: Int = 0): [Form990]
 	grants(limit: Int = 5, offset: Int = 0): [Grant]
 	newsArticles(limit: Int = 5, offset: Int = 0): [NewsArticle]
@@ -35,7 +34,7 @@ type NewsArticle {
 }
 
 type Query {
-	organization(ein: Int): Organization
+	organization(ein: String): Organization
 }
 
 schema {

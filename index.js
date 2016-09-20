@@ -17,6 +17,7 @@ import bodyParser from 'body-parser';
 import Schema from './data/schema';
 import Mocks from './data/mocks';
 import Resolvers from './data/resolvers';
+import { OrganizationConnector } from './data/connectors';
 
 dotenv.config();
 
@@ -35,7 +36,11 @@ addMockFunctionsToSchema({
 
 graphQLServer.use('/graphql', bodyParser.json(), apolloExpress({
 	schema: executableSchema,
-	context: {},
+	context: {
+    connectors: {
+      Organization: new OrganizationConnector,
+    },
+  },
 }));
 
 graphQLServer.use('/graphiql', graphiqlExpress({
