@@ -5,14 +5,23 @@ const resolvers = {
     },
   },
   Organization: {
-    forms990(root, args) {
-      return {};
+    * forms990(root, args) {
+      let { limit } = args;
+      while (limit--) {
+        yield {};
+      }
     },
     * grants(root, args) {
-      yield 'whatever';
+      let { limit } = args;
+      while (limit--) {
+        yield {};
+      }
     },
-    newsArticles(root, args) {
-      return {};
+    * newsArticles(root, args) {
+      let { limit } = args;
+      while (limit--) {
+        yield {};
+      }
     },
   },
   Form990: {
