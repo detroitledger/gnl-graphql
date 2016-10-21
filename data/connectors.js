@@ -56,5 +56,15 @@ export class OrganizationConnector {
     return this.db.models.organization.find({ where: { ein } });
   }
 
+  forms990(ein, limit, offset) {
+    return this.db.models.organization.findAll({
+      where: {
+        ein,
+      },
+      limit,
+      offset,
+    });
+  }
+
 }
 

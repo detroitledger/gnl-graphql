@@ -5,11 +5,8 @@ const resolvers = {
     },
   },
   Organization: {
-    * forms990(root, args) {
-      let { limit } = args;
-      while (limit--) {
-        yield {};
-      }
+    forms990(organization, args, context) {
+      return context.connectors.Organization.forms990(organization.ein, args.limit, args.offset);
     },
     * grants(root, args) {
       let { limit } = args;
