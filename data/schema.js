@@ -33,37 +33,37 @@ type Organization {
 }
 
 type Form990 {
-	id: Int
-	ein: Int
-	irs_year: String
-	tax_period: String
-	total_revenue: Int
-	total_expenses: Int
-	total_assets: Int
-	organization: Organization
+  id: Int
+  ein: Int
+  irs_year: String
+  tax_period: String
+  total_revenue: Int
+  total_expenses: Int
+  total_assets: Int
+  organization: Organization
 }
 
 type Grant {
-	id: Int
-	ein: Int
-	organization: Organization
+  id: Int
+  ein: Int
+  organization: Organization
 }
 
 type NewsArticle {
-	id: Int
-	ein: Int
-	desc: String
-	date: String
-	link: String
-	organization: Organization
+  id: Int
+  ein: Int
+  desc: String
+  date: String
+  link: String
+  organization: Organization
 }
 
 type Query {
-	organization(ein: String): Organization
+  organization(ein: String): Organization
 }
 
 schema {
-	query: Query
+  query: Query
 }
 `];
 
