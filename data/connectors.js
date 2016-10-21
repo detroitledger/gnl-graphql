@@ -48,7 +48,7 @@ export class OrganizationConnector {
       freezeTableName: true,
       createdAt: 'created_at',
       updatedAt: 'updated_at',
-      tableName: 'matt',
+      tableName: 'combined',
     });
   }
 
