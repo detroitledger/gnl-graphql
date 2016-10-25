@@ -17,7 +17,10 @@ import bodyParser from 'body-parser';
 import Schema from './data/schema';
 import Mocks from './data/mocks';
 import Resolvers from './data/resolvers';
-import { OrganizationConnector } from './data/connectors';
+import {
+  IrsDbConnector,
+  LedgerConnector,
+} from './data/connectors';
 
 dotenv.config();
 
@@ -38,7 +41,8 @@ graphQLServer.use('/graphql', bodyParser.json(), apolloExpress({
   schema: executableSchema,
   context: {
     connectors: {
-      Organization: new OrganizationConnector(),
+      IrsDb: new IrsDbConnector(),
+      Ledger: new LedgerConnector(),
     },
   },
 }));

@@ -1,9 +1,12 @@
 import Sequelize from 'sequelize';
+
+import { get as httpsGet } from 'https';
+
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-export class OrganizationConnector {
+export class IrsDbConnector {
 
   constructor() {
     this.db = new Sequelize(process.env.PG_DATABASE, process.env.PG_USER, process.env.PG_PASSWORD, {
@@ -11,11 +14,11 @@ export class OrganizationConnector {
       port: process.env.PG_PORT,
       dialect: 'postgres',
       dialectOptions: {
-        ssl: (process.env.PG_SSLMODE === 'require') ? true : false,
+        ssl: (process.env.PG_SSLMODE === 'require'),
       },
     });
 
-    this.OrganizationModel = this.db.define('organization', {
+    this.IrsDbModel = this.db.define('irsdb', {
       source: Sequelize.STRING(50),
       org: Sequelize.BIGINT,
       ein: Sequelize.STRING(50),
@@ -53,11 +56,11 @@ export class OrganizationConnector {
   }
 
   get(ein) {
-    return this.db.models.organization.find({ where: { ein } });
+    return this.db.models.irsdb.find({ where: { ein } });
   }
 
   forms990(ein, limit, offset) {
-    return this.db.models.organization.findAll({
+    return this.db.models.irsdb.findAll({
       where: {
         ein,
       },
@@ -68,3 +71,83 @@ export class OrganizationConnector {
 
 }
 
+export class LedgerConnector {
+
+  /**
+   * @param {Number} ein
+   * @returns {Promise}
+   */
+  grants(ein, limit, offset) {
+    return new Promise((resolve, reject) => {
+      const url = `https://data.detroitledger.org/api/1.0/grants.jsonp?filters[ein]=${ein}&limit=${limit}&offset=${offset}`;
+      const req = httpsGet(url, (res) => {
+        if (res.statusCode < 200 || res.statusCode > 299) {
+          reject(new Error(`HTTP error: ${res.statusCode}`));
+        }
+
+        const body = [];
+
+        res.on('data', chunk => body.push(chunk));
+        res.on('end', () => {
+          const data = JSON.parse(body.join(''));
+
+          resolve(data.grants.map((grant) => {
+            return {
+              ein,
+              id: grant.id,
+              funder: {
+                id: grant.field_funder.target_id,
+                name: grant.field_funder.name,
+              },
+              recipient: {
+                id: grant.field_recipient.target_id,
+                name: grant.field_recipient.name,
+              },
+              start: grant.field_start_date,
+              end: grant.field_end_date,
+              amount: grant.field_funded_amount,
+            };
+          }));
+        });
+      });
+
+      req.on('error', err => reject(err));
+    });
+  }
+
+  /**
+   * @param {Number} ein
+   * @returns {Promise}
+   */
+  newsArticles(ein, limit, offset) {
+    return new Promise((resolve, reject) => {
+      const url = `https://data.detroitledger.org/api/1.0/newsarticles.jsonp?filters[ein]=${ein}&limit=${limit}&offset=${offset}`;
+      console.log(url);
+      const req = httpsGet(url, (res) => {
+        if (res.statusCode < 200 || res.statusCode > 299) {
+          reject(new Error(`HTTP error: ${res.statusCode}`));
+        }
+
+        const body = [];
+
+        res.on('data', chunk => body.push(chunk));
+        res.on('end', () => {
+          const data = JSON.parse(body.join(''));
+
+          resolve(data.newsarticles.map((article) => {
+            return {
+              ein,
+              id: article.id,
+              desc: article.field_news_desc,
+              date: article.field_news_date,
+              link: article.field_news_link,
+            };
+          }));
+        });
+      });
+
+      req.on('error', err => reject(err));
+    });
+  }
+
+}
