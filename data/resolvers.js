@@ -14,11 +14,8 @@ const resolvers = {
     ledgerNewsArticles(organization, args, context) {
       return context.connectors.Ledger.newsArticles(organization.ein, args.limit, args.offset);
     },
-    * ledgerOrganizations(root, args) {
-      let { limit } = args;
-      while (limit--) {
-        yield {};
-      }
+    ledgerOrganizations(root, args, context) {
+      return context.connectors.Ledger.organizations(root.ein, args.limit, args.offset);
     },
   },
   Form990: {
@@ -30,21 +27,21 @@ const resolvers = {
     organization(grants) {
       return {};
     },
-    funder(root) {
-      return {};
+    funder(root, args, context) {
+      return context.connectors.Ledger.organization(root.funder.id);
     },
-    recipient(root) {
-      return {};
-    },
-  },
-  LedgerOrganization: {
-    organization(grants) {
-      return {};
+    recipient(root, args, context) {
+      return context.connectors.Ledger.organization(root.recipient.id);
     },
   },
   LedgerNewsArticle: {
-    organization(ledgerNewsArticles) {
-      return {};
+    organization(root, args, context) {
+      return root.relatedOrgIds.map((id) => context.connectors.Ledger.organization(id));
+    },
+  },
+  LedgerOrganization: {
+    ntees(root, args, context) {
+      return root.nteeIds.map((id) => context.connectors.Ledger.ntee(id));
     },
   },
 };

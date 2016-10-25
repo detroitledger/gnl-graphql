@@ -60,7 +60,17 @@ type LedgerOrganization {
   ein: Int
   name: String
   description: String
-  organization: Organization
+  ntees: [NteeCode]
+  start: String
+  end: String
+  received: Int
+  funded: Int
+  stateCorpId: String
+}
+
+type NteeCode {
+  id: Int
+  name: String
 }
 
 type LedgerNewsArticle {
@@ -69,7 +79,7 @@ type LedgerNewsArticle {
   desc: String
   date: String
   link: String
-  organization: Organization
+  organization: [LedgerOrganization]
 }
 
 type Query {
