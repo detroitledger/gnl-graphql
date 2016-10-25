@@ -79,7 +79,7 @@ export class LedgerConnector {
    */
   grants(ein, limit, offset) {
     return new Promise((resolve, reject) => {
-      const url = `https://data.detroitledger.org/api/1.0/grants.jsonp?filters[ein]=${ein}&limit=${limit}&offset=${offset}`;
+      const url = `https://data.detroitledger.org/api/1.0/grants.json?filters[ein]=${ein}&limit=${limit}&offset=${offset}`;
       const req = httpsGet(url, (res) => {
         if (res.statusCode < 200 || res.statusCode > 299) {
           reject(new Error(`HTTP error: ${res.statusCode}`));
