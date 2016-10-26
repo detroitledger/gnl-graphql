@@ -42,11 +42,11 @@ const mocks = {
     total_expenses: () => casual.integer(1, 1000000000),
     total_assets: () => casual.integer(1, 1000000000),
   }),
-  Grant: () => ({
+  LedgerGrant: () => ({
     id: () => casual.integer(1, 10000),
     ein: () => casual.integer(1, 100000000),
   }),
-  NewsArticle: () => ({
+  LedgerNewsArticle: () => ({
     id: () => casual.integer(1, 10000),
     ein: () => casual.integer(1, 100000000),
     desc: () => casual.sentences(5),

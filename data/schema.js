@@ -28,8 +28,9 @@ type Organization {
 	net_assets: Int
 	data: String
 	forms990(limit: Int = 5, offset: Int = 0): [Form990]
-	grants(limit: Int = 5, offset: Int = 0): [Grant]
-	newsArticles(limit: Int = 5, offset: Int = 0): [NewsArticle]
+  ledgerOrganizations(limit: Int = 5, offset: Int = 0): [LedgerOrganization]
+	ledgerGrants(limit: Int = 5, offset: Int = 0): [LedgerGrant]
+	ledgerNewsArticles(limit: Int = 5, offset: Int = 0): [LedgerNewsArticle]
 }
 
 type Form990 {
@@ -43,19 +44,42 @@ type Form990 {
   organization: Organization
 }
 
-type Grant {
+type LedgerGrant {
   id: Int
   ein: Int
+  funder: LedgerOrganization
+  recipient: LedgerOrganization
+  start: String
+  end: String
+  amount: Int
   organization: Organization
 }
 
-type NewsArticle {
+type LedgerOrganization {
+  id: Int
+  ein: Int
+  name: String
+  description: String
+  ntees: [NteeCode]
+  start: String
+  end: String
+  received: Int
+  funded: Int
+  stateCorpId: String
+}
+
+type NteeCode {
+  id: Int
+  name: String
+}
+
+type LedgerNewsArticle {
   id: Int
   ein: Int
   desc: String
   date: String
   link: String
-  organization: Organization
+  organization: [LedgerOrganization]
 }
 
 type Query {

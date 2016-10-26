@@ -1,24 +1,21 @@
 const resolvers = {
   Query: {
     organization(root, args, context) {
-      return context.connectors.Organization.get(args.ein);
+      return context.connectors.IrsDb.get(args.ein);
     },
   },
   Organization: {
     forms990(organization, args, context) {
-      return context.connectors.Organization.forms990(organization.ein, args.limit, args.offset);
+      return context.connectors.IrsDb.forms990(organization.ein, args.limit, args.offset);
     },
-    * grants(root, args) {
-      let { limit } = args;
-      while (limit--) {
-        yield {};
-      }
+    ledgerGrants(organization, args, context) {
+      return context.connectors.Ledger.grants(organization.ein, args.limit, args.offset);
     },
-    * newsArticles(root, args) {
-      let { limit } = args;
-      while (limit--) {
-        yield {};
-      }
+    ledgerNewsArticles(organization, args, context) {
+      return context.connectors.Ledger.newsArticles(organization.ein, args.limit, args.offset);
+    },
+    ledgerOrganizations(root, args, context) {
+      return context.connectors.Ledger.organizations(root.ein, args.limit, args.offset);
     },
   },
   Form990: {
@@ -26,14 +23,25 @@ const resolvers = {
       return {};
     },
   },
-  Grant: {
+  LedgerGrant: {
     organization(grants) {
       return {};
     },
+    funder(root, args, context) {
+      return context.connectors.Ledger.organization(root.funder.id);
+    },
+    recipient(root, args, context) {
+      return context.connectors.Ledger.organization(root.recipient.id);
+    },
   },
-  NewsArticle: {
-    organization(newsArticles) {
-      return {};
+  LedgerNewsArticle: {
+    organization(root, args, context) {
+      return root.relatedOrgIds.map((id) => context.connectors.Ledger.organization(id));
+    },
+  },
+  LedgerOrganization: {
+    ntees(root, args, context) {
+      return root.nteeIds.map((id) => context.connectors.Ledger.ntee(id));
     },
   },
 };

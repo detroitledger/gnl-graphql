@@ -15,35 +15,59 @@ Copy `sample.env` to `.env`, set up connection
 
 Got to http://localhost:8080/graphiql to use GraphiQL query interface
 
-Sample query for organizations:
+Sample query:
 ```graphql
-{organization(ein:"200877805") {
-  ein,
-  id,
-  subsccd,
-  pdf,
-  filing_type,
-  start_year,
-  end_year,
-  irs_year,
-  filing_date,
-  tax_period,
-  contributions_and_grants,
-  program_service_revenue,
-  investment_income,
-  other_revenue,
-  total_revenue,
-  grants_paid,
-  benefits_paid,
-  compensation,
-  fundraising_fees,
-  total_fundraising_expenses,
-  other_expenses,
-  total_expenses,
-  revenue_less_expenses,
-  total_assets,
-  total_liabilities,
-  net_assets,
-  data
-}}
+{
+  organization(ein: "380808800") {
+    ein
+    program_service_revenue
+    forms990(limit: 3, offset: 3) {
+      id
+      ein
+      tax_period
+      total_assets
+    }
+    ledgerOrganizations {
+      ...orgFields
+    }
+    ledgerGrants(limit: 3, offset: 3) {
+      id
+      ein
+      amount
+      start
+      end
+      funder {
+        ...orgFields
+      }
+      recipient {
+        ...orgFields
+      }
+    }
+    ledgerNewsArticles {
+      id
+      link
+      date
+      desc
+      organization {
+        ...orgFields
+      }
+    }
+  }
+}
+
+fragment orgFields on LedgerOrganization {
+  name
+  description
+  id
+  ein
+  stateCorpId
+  funded
+  received
+  start
+  end
+  ntees {
+    id
+    name
+  }
+}
 ```
