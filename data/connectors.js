@@ -79,7 +79,7 @@ export class LedgerConnector {
    */
   grants(ein, limit, offset) {
     return new Promise((resolve, reject) => {
-      const url = `${API_URL}/grants.json?filters[ein]=${ein}&limit=${limit}&offset=${offset}`;
+      const url = `${process.env.LEDGER_API_URL}/grants.json?filters[ein]=${ein}&limit=${limit}&offset=${offset}`;
       const req = httpsGet(url, (res) => {
         if (res.statusCode < 200 || res.statusCode > 299) {
           reject(new Error(`HTTP error: ${res.statusCode}`));
@@ -121,7 +121,7 @@ export class LedgerConnector {
    */
   organizations(ein, limit, offset) {
     return new Promise((resolve, reject) => {
-      const url = `${API_URL}/orgs.json?filters[ein]=${ein}&limit=${limit}&offset=${offset}`;
+      const url = `${process.env.LEDGER_API_URL}/orgs.json?filters[ein]=${ein}&limit=${limit}&offset=${offset}`;
       const req = httpsGet(url, (res) => {
         if (res.statusCode < 200 || res.statusCode > 299) {
           reject(new Error(`HTTP error: ${res.statusCode}`));
@@ -148,7 +148,7 @@ export class LedgerConnector {
    */
   newsArticles(ein, limit, offset) {
     return new Promise((resolve, reject) => {
-      const url = `${API_URL}/newsarticles.json?filters[ein]=${ein}&limit=${limit}&offset=${offset}`;
+      const url = `${process.env.LEDGER_API_URL}/newsarticles.json?filters[ein]=${ein}&limit=${limit}&offset=${offset}`;
       console.log(url);
       const req = httpsGet(url, (res) => {
         if (res.statusCode < 200 || res.statusCode > 299) {
@@ -183,7 +183,7 @@ export class LedgerConnector {
    */
   organization(id) {
     return new Promise((resolve, reject) => {
-      const url = `${API_URL}/orgs/${id}.json`;
+      const url = `${process.env.LEDGER_API_URL}/orgs/${id}.json`;
       console.log(url);
       const req = httpsGet(url, (res) => {
         if (res.statusCode < 200 || res.statusCode > 299) {
@@ -204,7 +204,7 @@ export class LedgerConnector {
 
   ntee(id) {
     return new Promise((resolve, reject) => {
-      const url = `${API_URL}/orgs/${id}.json`;
+      const url = `${process.env.LEDGER_API_URL}/orgs/${id}.json`;
       console.log(url);
       const req = httpsGet(url, (res) => {
         if (res.statusCode < 200 || res.statusCode > 299) {
