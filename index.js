@@ -2,6 +2,8 @@ import dotenv from 'dotenv';
 
 import express from 'express';
 
+import cors from 'cors';
+
 import {
   apolloExpress,
   graphiqlExpress,
@@ -24,7 +26,8 @@ import {
 
 dotenv.config();
 
-const graphQLServer = express();
+// add cors to fix 'access-control-allow-origin' error when connecting apollo graphql client app
+const graphQLServer = express().use('*', cors());
 
 const executableSchema = makeExecutableSchema({
   typeDefs: Schema,
