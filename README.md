@@ -71,3 +71,5 @@ fragment orgFields on LedgerOrganization {
   }
 }
 ```
+## Connecting to a client
+Tinkered with connecting this server to a simple Apollo/React client app here: https://github.com/jessicamcinchak/frontpage-react-app/tree/ledger-client
