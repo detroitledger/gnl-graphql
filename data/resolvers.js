@@ -1,32 +1,32 @@
 const resolvers = {
   Query: {
-    organization(root, args, context) {
+    irsOrganization(root, args, context) {
       return context.connectors.IrsDb.get(args.ein);
     },
+    ledgerOrganization(root, args, context) {
+      return context.connectors.Ledger.organization(args.id);
+    },
   },
-  Organization: {
-    forms990(organization, args, context) {
-      return context.connectors.IrsDb.forms990(organization.ein, args.limit, args.offset);
+  IrsOrganization: {
+    forms990(irsOrganization, args, context) {
+      return context.connectors.IrsDb.forms990(irsOrganization.ein, args.limit, args.offset);
     },
-    ledgerGrants(organization, args, context) {
-      return context.connectors.Ledger.grants(organization.ein, args.limit, args.offset);
+    ledgerGrants(irsOrganization, args, context) {
+      return context.connectors.Ledger.grants(irsOrganization.ein, args.limit, args.offset);
     },
-    ledgerNewsArticles(organization, args, context) {
-      return context.connectors.Ledger.newsArticles(organization.ein, args.limit, args.offset);
+    ledgerNewsArticles(irsOrganization, args, context) {
+      return context.connectors.Ledger.newsArticles(irsOrganization.ein, args.limit, args.offset);
     },
-    ledgerOrganizations(root, args, context) {
-      return context.connectors.Ledger.organizations(root.ein, args.limit, args.offset);
+    ledgerOrganizations(irsOrganization, args, context) {
+      return context.connectors.Ledger.organizations(irsOrganization.ein, args.limit, args.offset);
     },
   },
   Form990: {
-    organization(forms990) {
+    irsOrganization(forms990) {
       return {};
     },
   },
   LedgerGrant: {
-    organization(grants) {
-      return {};
-    },
     funder(root, args, context) {
       return context.connectors.Ledger.organization(root.funder.id);
     },
@@ -35,7 +35,7 @@ const resolvers = {
     },
   },
   LedgerNewsArticle: {
-    organization(root, args, context) {
+    ledgerOrganizations(root, args, context) {
       return root.relatedOrgIds.map((id) => context.connectors.Ledger.organization(id));
     },
   },

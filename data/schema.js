@@ -1,5 +1,5 @@
 const typeDefinitions = [`
-type Organization {
+type IrsOrganization {
 	id: Int
 	ein: String
 	subsccd: String
@@ -41,7 +41,7 @@ type Form990 {
   total_revenue: Int
   total_expenses: Int
   total_assets: Int
-  organization: Organization
+  irsOrganization: IrsOrganization
 }
 
 type LedgerGrant {
@@ -52,7 +52,6 @@ type LedgerGrant {
   start: String
   end: String
   amount: Int
-  organization: Organization
 }
 
 type LedgerOrganization {
@@ -79,11 +78,12 @@ type LedgerNewsArticle {
   desc: String
   date: String
   link: String
-  organization: [LedgerOrganization]
+  ledgerOrganizations(limit: Int = 5, offset: Int = 0): [LedgerOrganization]
 }
 
 type Query {
-  organization(ein: String): Organization
+  irsOrganization(ein: String): IrsOrganization
+  ledgerOrganization(id: Int): LedgerOrganization
 }
 
 schema {
