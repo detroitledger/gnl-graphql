@@ -133,7 +133,11 @@ export class LedgerConnector {
         res.on('end', () => {
           const data = JSON.parse(body.join(''));
 
-          resolve(data.orgs.map(orgTemplate));
+          if (data.orgs) {
+            resolve(data.orgs.map(orgTemplate));
+          } else {
+            resolve([]);
+          }
         });
       });
 
