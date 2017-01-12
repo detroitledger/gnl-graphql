@@ -59,12 +59,14 @@ type LedgerOrganization {
   ein: Int
   name: String
   description: String
-  ntees: [NteeCode]
   start: String
   end: String
   received: Int
   funded: Int
   stateCorpId: String
+  ntees: [NteeCode]
+  ledgerGrantsFunded(limit: Int = 5, offset: Int = 0): [LedgerGrant]
+  ledgerGrantsReceived(limit: Int = 5, offset: Int = 0): [LedgerGrant]
 }
 
 type NteeCode {

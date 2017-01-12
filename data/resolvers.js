@@ -12,13 +12,13 @@ const resolvers = {
       return context.connectors.IrsDb.forms990(irsOrganization.ein, args.limit, args.offset);
     },
     ledgerGrants(irsOrganization, args, context) {
-      return context.connectors.Ledger.grants(irsOrganization.ein, args.limit, args.offset);
+      return context.connectors.Ledger.grantsByEin(irsOrganization.ein, args.limit, args.offset);
     },
     ledgerNewsArticles(irsOrganization, args, context) {
-      return context.connectors.Ledger.newsArticles(irsOrganization.ein, args.limit, args.offset);
+      return context.connectors.Ledger.newsArticlesByEin(irsOrganization.ein, args.limit, args.offset);
     },
     ledgerOrganizations(irsOrganization, args, context) {
-      return context.connectors.Ledger.organizations(irsOrganization.ein, args.limit, args.offset);
+      return context.connectors.Ledger.organizationsByEin(irsOrganization.ein, args.limit, args.offset);
     },
   },
   Form990: {
@@ -42,6 +42,12 @@ const resolvers = {
   LedgerOrganization: {
     ntees(root, args, context) {
       return root.nteeIds.map((id) => context.connectors.Ledger.ntee(id));
+    },
+    ledgerGrantsFunded(ledgerOrganization, args, context) {
+      return context.connectors.Ledger.grantsFunded(ledgerOrganization.id, args.limit, args.offset);
+    },
+    ledgerGrantsReceived(ledgerOrganization, args, context) {
+      return context.connectors.Ledger.grantsReceived(ledgerOrganization.id, args.limit, args.offset);
     },
   },
 };

@@ -77,7 +77,7 @@ export class LedgerConnector {
    * @param {Number} ein
    * @returns {Promise}
    */
-  grants(ein, limit, offset) {
+  grantsByEin(ein, limit, offset) {
     return new Promise((resolve, reject) => {
       const url = `${process.env.LEDGER_API_URL}/grants.json?filters[ein]=${ein}&limit=${limit}&offset=${offset}`;
       const req = httpsGet(url, (res) => {
@@ -91,23 +91,7 @@ export class LedgerConnector {
         res.on('end', () => {
           const data = JSON.parse(body.join(''));
 
-          resolve(data.grants.map((grant) => {
-            return {
-              ein,
-              id: grant.id,
-              funder: {
-                id: grant.field_funder.target_id,
-                name: grant.field_funder.name,
-              },
-              recipient: {
-                id: grant.field_recipient.target_id,
-                name: grant.field_recipient.name,
-              },
-              start: grant.field_start_date,
-              end: grant.field_end_date,
-              amount: grant.field_funded_amount,
-            };
-          }));
+          resolve(data.grants.map((grant) => grantTemplate(grant)));
         });
       });
 
@@ -119,7 +103,7 @@ export class LedgerConnector {
    * @param {Number} ein
    * @returns {Promise}
    */
-  organizations(ein, limit, offset) {
+  organizationsByEin(ein, limit, offset) {
     return new Promise((resolve, reject) => {
       const url = `${process.env.LEDGER_API_URL}/orgs.json?filters[ein]=${ein}&limit=${limit}&offset=${offset}`;
       const req = httpsGet(url, (res) => {
@@ -150,7 +134,7 @@ export class LedgerConnector {
    * @param {Number} ein
    * @returns {Promise}
    */
-  newsArticles(ein, limit, offset) {
+  newsArticlesByEin(ein, limit, offset) {
     return new Promise((resolve, reject) => {
       const url = `${process.env.LEDGER_API_URL}/newsarticles.json?filters[ein]=${ein}&limit=${limit}&offset=${offset}`;
       console.log(url);
@@ -164,16 +148,7 @@ export class LedgerConnector {
         res.on('data', chunk => body.push(chunk));
         res.on('end', () => {
           const data = JSON.parse(body.join(''));
-          resolve(data.newsarticles.map((article) => {
-            return {
-              ein,
-              id: article.id,
-              desc: article.field_news_desc,
-              date: article.field_news_date,
-              link: article.field_news_link,
-              relatedOrgIds: article.field_news_org.map((el) => el.target_id),
-            };
-          }));
+          resolve(data.newsarticles.map((article) => newsTemplate(article)));
         });
       });
 
@@ -238,6 +213,59 @@ export class LedgerConnector {
     });
   }
 
+  /**
+   * @param {Number} ein
+   * @returns {Promise}
+   */
+  grantsFunded(id, limit, offset) {
+    return new Promise((resolve, reject) => {
+      const url = `${process.env.LEDGER_API_URL}/orgs/${id}/grants_funded.json?limit=${limit}&offset=${offset}`;
+      console.log(url);
+      const req = httpsGet(url, (res) => {
+        if (res.statusCode < 200 || res.statusCode > 299) {
+          reject(new Error(`HTTP error: ${res.statusCode}`));
+        }
+
+        const body = [];
+
+        res.on('data', chunk => body.push(chunk));
+        res.on('end', () => {
+          const data = JSON.parse(body.join(''));
+
+          resolve(data.grants_funded.map((grant) => grantTemplate(grant)));
+        });
+      });
+
+      req.on('error', err => reject(err));
+    });
+  }
+
+  /**
+   * @param {Number} ein
+   * @returns {Promise}
+   */
+  grantsReceived(id, limit, offset) {
+    return new Promise((resolve, reject) => {
+      const url = `${process.env.LEDGER_API_URL}/orgs/${id}/grants_received.json?limit=${limit}&offset=${offset}`;
+      console.log(url);
+      const req = httpsGet(url, (res) => {
+        if (res.statusCode < 200 || res.statusCode > 299) {
+          reject(new Error(`HTTP error: ${res.statusCode}`));
+        }
+
+        const body = [];
+
+        res.on('data', chunk => body.push(chunk));
+        res.on('end', () => {
+          const data = JSON.parse(body.join(''));
+
+          resolve(data.grants_received.map((grant) => grantTemplate(grant)));
+        });
+      });
+
+      req.on('error', err => reject(err));
+    });
+  }
 }
 
 function orgTemplate(org) {
@@ -252,5 +280,32 @@ function orgTemplate(org) {
     funded: org.org_grants_funded,
     nteeIds: org.field_ntee ? Object.keys(org.field_ntee.und) : [],
     stateCorpId: org.field_state_corp_id ? org.field_state_corp_id.value : null,
+  };
+}
+
+function grantTemplate(grant) {
+  return {
+    id: grant.id,
+    funder: {
+      id: grant.field_funder.target_id,
+      name: grant.field_funder.name,
+    },
+    recipient: {
+      id: grant.field_recipient.target_id,
+      name: grant.field_recipient.name,
+    },
+    start: grant.field_start_date,
+    end: grant.field_end_date,
+    amount: grant.field_funded_amount,
+  };
+}
+
+function newsTemplate(article) {
+  return {
+    id: article.id,
+    desc: article.field_news_desc,
+    date: article.field_news_date,
+    link: article.field_news_link,
+    relatedOrgIds: article.field_news_org.map((el) => el.target_id),
   };
 }
