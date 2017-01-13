@@ -1,3 +1,5 @@
+import { difference } from 'lodash';
+
 const resolvers = {
   Query: {
     irsOrganization(root, args, context) {
@@ -27,10 +29,20 @@ const resolvers = {
     },
   },
   LedgerGrant: {
-    funder(root, args, context) {
+    funder(root, args, context, info) {
+      // Can we use the preloaded data?
+      if (orgQueryIsSimple(info)) {
+        return root.funder
+      }
+
       return context.connectors.Ledger.organization(root.funder.id);
     },
-    recipient(root, args, context) {
+    recipient(root, args, context, info) {
+      // Can we use the preloaded data?
+      if (orgQueryIsSimple(info)) {
+        return root.recipient;
+      }
+
       return context.connectors.Ledger.organization(root.recipient.id);
     },
   },
@@ -51,5 +63,19 @@ const resolvers = {
     },
   },
 };
+
+function orgQueryIsSimple(info) {
+  const sels = info.fieldASTs[0].selectionSet.selections;
+
+  // Only name and target_id are preloaded, so a query involving over 2 fields (plus __typename) is not eligible.
+  if (sels.length > 3) {
+    return false;
+  }
+
+  const names = sels.map((sel) => sel.name.value);
+
+  // Ensure the only requested fields are the preloaded ones.
+  return difference(names, ['__typename', 'name', 'target_id']).length === 0;
+}
 
 export default resolvers;
