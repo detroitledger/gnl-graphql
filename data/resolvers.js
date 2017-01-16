@@ -61,8 +61,8 @@ const resolvers = {
     ledgerGrantsReceived(ledgerOrganization, args, context) {
       return context.connectors.Ledger.grantsReceived(ledgerOrganization.id, args.limit, args.offset);
     },
-    irsOrganization(ledgerOrganization, args, context) {
-      return context.connectors.IrsDb.get(String(ledgerOrganization.ein));
+    forms990(ledgerOrganization, args, context) {
+      return context.connectors.IrsDb.forms990(String(ledgerOrganization.ein), args.limit, args.offset);
     },
   },
 };
