@@ -52,6 +52,7 @@ type LedgerGrant {
   start: String
   end: String
   amount: Int
+  description: String
 }
 
 type LedgerOrganization {

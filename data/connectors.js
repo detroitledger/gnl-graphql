@@ -297,6 +297,7 @@ function grantTemplate(grant) {
     start: grant.field_start_date,
     end: grant.field_end_date,
     amount: grant.field_funded_amount,
+    description: grant.body ? grant.body.und[0].value : null,
   };
 }
 
