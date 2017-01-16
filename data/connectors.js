@@ -278,6 +278,7 @@ function orgTemplate(org) {
     end: org.org_grants_dateend,
     received: org.org_grants_received,
     funded: org.org_grants_funded,
+    ntees: org.field_ntee ? org.field_ntee.und : [],
     nteeIds: org.field_ntee ? Object.keys(org.field_ntee.und) : [],
     stateCorpId: org.field_state_corp_id ? org.field_state_corp_id.value : null,
   };
