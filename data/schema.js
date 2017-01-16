@@ -68,6 +68,7 @@ type LedgerOrganization {
   ntees: [NteeCode]
   ledgerGrantsFunded(limit: Int = 5, offset: Int = 0): [LedgerGrant]
   ledgerGrantsReceived(limit: Int = 5, offset: Int = 0): [LedgerGrant]
+  irsOrganization: IrsOrganization
 }
 
 type NteeCode {
