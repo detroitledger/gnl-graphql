@@ -75,7 +75,7 @@ function orgQueryIsSimple(info) {
   const names = sels.map((sel) => sel.name.value);
 
   // Ensure the only requested fields are the preloaded ones.
-  return difference(names, ['__typename', 'name', 'target_id']).length === 0;
+  return difference(names, ['__typename', 'name', 'id']).length === 0;
 }
 
 export default resolvers;
