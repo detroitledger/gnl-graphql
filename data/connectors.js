@@ -173,7 +173,11 @@ export class LedgerConnector {
 
         res.on('data', chunk => body.push(chunk));
         res.on('end', () => {
-          resolve(orgTemplate(JSON.parse(body.join(''))));
+          try {
+            resolve(orgTemplate(JSON.parse(body.join(''))));
+          } catch (e) {
+            reject({ error: 'syntax error in ' + url });
+          }
         });
       });
 
