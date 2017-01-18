@@ -89,6 +89,7 @@ type LedgerOrganization {
   ntees: [NteeCode]
   ledgerGrantsFunded(limit: Int = 5, offset: Int = 0): [LedgerGrant]
   ledgerGrantsReceived(limit: Int = 5, offset: Int = 0): [LedgerGrant]
+  ledgerNewsArticles: [LedgerNewsArticle]
   forms990(limit: Int = 5, offset: Int = 0): [Form990]
 }
 
@@ -103,7 +104,8 @@ type LedgerNewsArticle {
   desc: String
   date: String
   link: String
-  ledgerOrganizations(limit: Int = 5, offset: Int = 0): [LedgerOrganization]
+  ledgerGrants: [LedgerGrant]
+  ledgerOrganizations: [LedgerOrganization]
 }
 
 type Query {

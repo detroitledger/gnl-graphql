@@ -281,6 +281,7 @@ function orgTemplate(org) {
     ntees: org.field_ntee ? org.field_ntee.und : [],
     nteeIds: org.field_ntee ? Object.keys(org.field_ntee.und) : [],
     stateCorpId: org.field_state_corp_id ? org.field_state_corp_id.value : null,
+    newsArticles: org.news ? org.news.map((article) => newsTemplate(article)) : [],
   };
 }
 

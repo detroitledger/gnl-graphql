@@ -68,6 +68,9 @@ const resolvers = {
     forms990(ledgerOrganization, args, context) {
       return context.connectors.IrsDb.forms990(String(ledgerOrganization.ein), args.limit, args.offset);
     },
+    ledgerNewsArticles(ledgerOrganization, args, context) {
+      return ledgerOrganization.newsArticles;
+    },
   },
 };
 
