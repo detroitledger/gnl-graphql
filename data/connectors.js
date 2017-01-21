@@ -310,6 +310,7 @@ function grantTemplate(grant) {
 function newsTemplate(article) {
   return {
     id: article.id,
+    title: article.title,
     desc: article.field_news_desc,
     date: article.field_news_date,
     link: article.field_news_link,
