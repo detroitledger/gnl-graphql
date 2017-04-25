@@ -304,6 +304,7 @@ function grantTemplate(grant) {
     end: grant.field_end_date,
     amount: grant.field_funded_amount,
     description: grant.body ? grant.body.und[0].value : null,
+    federalAwardId: grant.field_federal_award_id ? grant.field_federal_award_id.value : null,
   };
 }
 

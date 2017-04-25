@@ -74,6 +74,7 @@ type LedgerGrant {
   end: String
   amount: Int
   description: String
+  federalAwardId  : String
 }
 
 type LedgerOrganization {
