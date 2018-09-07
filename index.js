@@ -16,6 +16,8 @@ import {
 
 import bodyParser from 'body-parser';
 
+import { OAuth2Client } from 'google-auth-library';
+
 import Schema from './data/schema';
 import Mocks from './data/mocks';
 import Resolvers from './data/resolvers';
@@ -27,7 +29,7 @@ import {
 dotenv.config();
 
 // add cors to fix 'access-control-allow-origin' error when connecting apollo graphql client app
-const graphQLServer = express().use('*', cors());
+const server = express().use('*', cors());
 
 const executableSchema = makeExecutableSchema({
   typeDefs: Schema,
@@ -40,7 +42,7 @@ const executableSchema = makeExecutableSchema({
 //  preserveResolvers: true,
 //});
 
-graphQLServer.use('/graphql', bodyParser.json(), apolloExpress({
+server.use('/graphql', bodyParser.json(), apolloExpress({
   schema: executableSchema,
   context: {
     connectors: {
@@ -50,10 +52,57 @@ graphQLServer.use('/graphql', bodyParser.json(), apolloExpress({
   },
 }));
 
-graphQLServer.use('/graphiql', graphiqlExpress({
+server.use('/graphiql', graphiqlExpress({
   endpointURL: '/graphql',
 }));
 
-graphQLServer.listen(process.env.GRAPHQL_PORT, () => console.log(
+// Auth
+if (!process.env.GOOGLE_CLIENT_ID) {
+  throw new Error('GOOGLE_CLIENT_ID environment variable is required to start.');
+}
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+async function verifyToken(idToken) {
+  const ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+  });
+  const payload = ticket.getPayload();
+  return payload;
+}
+
+function authenticateGoogleUser(user) {
+  return user.email === 'anonyben@gmail.com';
+}
+
+server.use('/getGoogleUser', (req, res, next) => {
+  if (req.headers['x-auth-token']) {
+    try {
+      verifyToken(req.headers['x-auth-token'])
+        .then((user) => {
+          req.user = user;
+          if (authenticateGoogleUser(user)) {
+            res.status(200).json({ user });
+          } else {
+            res.status(401).json({ error: 'Not on the list' });
+          }
+        })
+        .catch((e) => {
+          if (e.message && e.message.includes('Token used too late')) {
+            res.status(412).json({ error: 'Token expired' });
+          } else {
+            res.status(401).json({ error: 'Unauthorized' });
+          }
+        });
+    } catch (e) {
+      res.status(500).json({ error: 'Unknown error' });
+    }
+  } else {
+    res.status(400).json({ error: 'Missing token' });
+  }
+});
+
+server.listen(process.env.GRAPHQL_PORT, () => console.log(
   `GraphQL Server is now running on http://localhost:${process.env.GRAPHQL_PORT}/graphql`
 ));
