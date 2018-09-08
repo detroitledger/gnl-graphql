@@ -18,7 +18,7 @@ Got to http://localhost:8080/graphiql to use GraphiQL query interface
 Sample query:
 ```graphql
 {
-  organization(ein: "380808800") {
+  irsOrganization(ein: "380808800") {
     ein
     program_service_revenue
     forms990(limit: 3, offset: 3) {
@@ -48,7 +48,7 @@ Sample query:
       link
       date
       desc
-      organization {
+      ledgerOrganizations {
         ...orgFields
       }
     }
