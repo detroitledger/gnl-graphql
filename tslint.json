@@ -1,0 +1,9 @@
+{
+  "defaultSeverity": "error",
+  "extends": ["tslint:recommended"],
+  "rules": {
+    "indent": [true, "spaces", 2],
+    "quotemark": [true, "single", "avoid-escape"],
+    "triple-equals": [true, "allow-undefined-check"]
+  }
+}

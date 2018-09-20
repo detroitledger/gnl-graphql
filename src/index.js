@@ -1,8 +1,8 @@
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 
-import express from 'express';
+import * as express from 'express';
 
-import cors from 'cors';
+import * as cors from 'cors';
 
 import {
   apolloExpress,
@@ -14,12 +14,12 @@ import {
   addMockFunctionsToSchema,
 } from 'graphql-tools';
 
-import bodyParser from 'body-parser';
+import * as bodyParser from 'body-parser';
 
 import { OAuth2Client } from 'google-auth-library';
 
 import Schema from './data/schema';
-import Mocks from './data/mocks';
+//import Mocks from './data/mocks';
 import Resolvers from './data/resolvers';
 import {
   IrsDbConnector,

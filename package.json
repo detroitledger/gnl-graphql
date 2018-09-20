@@ -22,6 +22,9 @@
     "sequelize": "4.38.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.4",
+    "@types/dotenv": "^4.0.3",
+    "@types/node": "^10.10.1",
     "babel-cli": "^6.14.0",
     "babel-core": "^6.14.0",
     "babel-eslint": "^6.1.2",
@@ -34,7 +37,8 @@
     "eslint-config-airbnb": "^10.0.1",
     "eslint-plugin-import": "^1.14.0",
     "eslint-plugin-react": "^6.2.0",
-    "graphql": "^0.7.0"
+    "graphql": "^0.7.0",
+    "typescript": "3.0.3"
   },
   "peerDependencies": {
     "graphql": "^0.7.0"
