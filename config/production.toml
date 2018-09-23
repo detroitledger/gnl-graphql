@@ -1,0 +1,21 @@
+port = 8081
+
+name = 'gnl-graphql'
+
+[[log]]
+level = 'info'
+out = 'stdout'
+
+[database]
+dialect = 'postgres'
+host = 'xxx'
+port = 5432
+database = 'postgres'
+user = 'xxx'
+password = 'xxx'
+[database.dialectOptions]
+ssl = true
+
+[auth]
+allowed_emails = 'e@mail.com bee@mail.com'
+

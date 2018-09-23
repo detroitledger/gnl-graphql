@@ -4,6 +4,8 @@ import { get as httpsGet } from 'https';
 
 import * as dotenv from 'dotenv';
 
+import db from './db/models';
+
 dotenv.config();
 
 export class IrsDbConnector {

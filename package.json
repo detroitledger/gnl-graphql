@@ -12,6 +12,8 @@
   "dependencies": {
     "apollo-server": "^0.3.0",
     "body-parser": "^1.15.2",
+    "bunyan": "^1.8.12",
+    "config": "^2.0.1",
     "cors": "^2.8.1",
     "dotenv": "^2.0.0",
     "express": "^4.14.0",
@@ -19,12 +21,17 @@
     "graphql-tools": "^0.7.2",
     "lodash": "^4.17.4",
     "pg": "^6.1.0",
-    "sequelize": "4.38.0"
+    "sequelize": "4.38.0",
+    "sqlite3": "^4.0.2",
+    "toml": "^2.3.3"
   },
   "devDependencies": {
+    "@types/bunyan": "^1.8.4",
+    "@types/config": "^0.0.34",
     "@types/cors": "^2.8.4",
     "@types/dotenv": "^4.0.3",
     "@types/node": "^10.10.1",
+    "@types/sequelize": "^4.27.26",
     "babel-cli": "^6.14.0",
     "babel-core": "^6.14.0",
     "babel-eslint": "^6.1.2",
@@ -38,6 +45,7 @@
     "eslint-plugin-import": "^1.14.0",
     "eslint-plugin-react": "^6.2.0",
     "graphql": "^0.7.0",
+    "sequelize-cli": "^4.1.1",
     "typescript": "3.0.3"
   },
   "peerDependencies": {

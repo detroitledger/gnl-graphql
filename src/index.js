@@ -74,14 +74,14 @@ async function verifyToken(idToken) {
 
 const authenticateGoogleUser = user => process.env.ALLOWED_EMAILS.split(' ').includes(user.email);
 
-server.use('/getGoogleUser', (req, res, next) => {
+const authenticatedOnly = (handler) => (req, res) => {
   if (req.headers['x-auth-token']) {
     try {
       verifyToken(req.headers['x-auth-token'])
         .then((user) => {
           req.user = user;
           if (authenticateGoogleUser(user)) {
-            res.status(200).json({ user });
+            handler(req, res);
           } else {
             res.status(401).json({ error: 'Not on the list' });
           }
@@ -99,8 +99,12 @@ server.use('/getGoogleUser', (req, res, next) => {
   } else {
     res.status(400).json({ error: 'Missing token' });
   }
-});
+}
 
-server.listen(process.env.GRAPHQL_PORT, () => console.log(
-  `GraphQL Server is now running on http://localhost:${process.env.GRAPHQL_PORT}/graphql`
+server.use('/getGoogleUser', authenticatedOnly((req, res) => {
+  res.status(200).json({ user: req.user });
+}));
+
+server.listen(process.env.PORT, () => console.log(
+  `Server is now running on http://localhost:${process.env.PORT}/`
 ));

@@ -1,0 +1,16 @@
+port = 8081
+
+name = 'gnl-graphql'
+
+[[log]]
+level = 'debug'
+out = 'stdout'
+
+[database]
+operatorsAliases = false
+dialect = 'sqlite'
+storage = './devdb.sqlite'
+database = 'gnl_graphql_dev'
+
+[auth]
+allowed_emails = 'e@mail.com bee@mail.com'
