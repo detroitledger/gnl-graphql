@@ -72,9 +72,7 @@ async function verifyToken(idToken) {
   return payload;
 }
 
-function authenticateGoogleUser(user) {
-  return user.email === 'anonyben@gmail.com';
-}
+const authenticateGoogleUser = user => process.env.ALLOWED_EMAILS.split(' ').includes(user.email);
 
 server.use('/getGoogleUser', (req, res, next) => {
   if (req.headers['x-auth-token']) {
