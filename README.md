@@ -4,14 +4,20 @@ graphql server for detroitledger.org
 Reference docs: http://dev.apollodata.com/tools/
 
 ## Install
-`npm install`
+`yarn install`
+
+## Set up databases
+
+By default the dev environment uses a sqlite database `devdb.sqlite` that is created in the project's root.
+
+Initalize the database by running `yarn run sequelize db:migrate`
 
 ## Config
 
-Copy `sample.env` to `.env`, set up connection
+We use the `config` package to manage our configurations. See `config/default.toml`.
 
 ## Use
-`npm start`
+`yarn start`
 
 Got to http://localhost:8080/graphiql to use GraphiQL query interface
 
