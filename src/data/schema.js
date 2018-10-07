@@ -1,4 +1,5 @@
-const typeDefinitions = [`
+const typeDefinitions = [
+  `
 type IrsOrganization {
   id: Int
   ein: String
@@ -118,6 +119,7 @@ type Query {
 schema {
   query: Query
 }
-`];
+`,
+];
 
 export default typeDefinitions;

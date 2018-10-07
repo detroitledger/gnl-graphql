@@ -12,21 +12,36 @@ import grantFactory, * as grant from './grant';
 import organizationFactory, * as organization from './organization';
 
 export interface Db {
-  sequelize: Sequelize.Sequelize
-  Sequelize: Sequelize.SequelizeStatic
-  GrantTag: Sequelize.Model<grantTag.GrantTagInstance, grantTag.GrantTagAttributes>
-  OrganizationTag: Sequelize.Model<organizationTag.OrganizationTagInstance, organizationTag.OrganizationTagAttributes>
-  NteeGrantType: Sequelize.Model<nteeGrantType.NteeGrantTypeInstance, nteeGrantType.NteeGrantTypeAttributes>
-  NteeOrganizationType: Sequelize.Model<nteeOrganizationType.NteeOrganizationTypeInstance, nteeOrganizationType.NteeOrganizationTypeAttributes>
-  Grant: Sequelize.Model<grant.GrantInstance, grant.GrantAttributes>
-  Organization: Sequelize.Model<organization.OrganizationInstance, organization.OrganizationAttributes>
-};
+  sequelize: Sequelize.Sequelize;
+  Sequelize: Sequelize.SequelizeStatic;
+  GrantTag: Sequelize.Model<
+    grantTag.GrantTagInstance,
+    grantTag.GrantTagAttributes
+  >;
+  OrganizationTag: Sequelize.Model<
+    organizationTag.OrganizationTagInstance,
+    organizationTag.OrganizationTagAttributes
+  >;
+  NteeGrantType: Sequelize.Model<
+    nteeGrantType.NteeGrantTypeInstance,
+    nteeGrantType.NteeGrantTypeAttributes
+  >;
+  NteeOrganizationType: Sequelize.Model<
+    nteeOrganizationType.NteeOrganizationTypeInstance,
+    nteeOrganizationType.NteeOrganizationTypeAttributes
+  >;
+  Grant: Sequelize.Model<grant.GrantInstance, grant.GrantAttributes>;
+  Organization: Sequelize.Model<
+    organization.OrganizationInstance,
+    organization.OrganizationAttributes
+  >;
+}
 
 export default function dbFactory(): Db {
-  const logger = baseLogger.child({module: 'database'});
+  const logger = baseLogger.child({ module: 'database' });
   const dbConfig = config.get('database') as Sequelize.Options;
 
-  dbConfig.logging = (msg) => logger.debug(msg);
+  dbConfig.logging = msg => logger.debug(msg);
 
   logger.info('setting up database with dialect %s', dbConfig.dialect);
 
@@ -43,11 +58,13 @@ export default function dbFactory(): Db {
     Organization: organizationFactory(sequelize),
   };
 
-  Object.values(db.sequelize.models).forEach((model: Sequelize.Model<any, any>) => {
-    if (model.associate) {
-      model.associate(db.sequelize.models);
+  Object.values(db.sequelize.models).forEach(
+    (model: Sequelize.Model<any, any>) => {
+      if (model.associate) {
+        model.associate(db.sequelize.models);
+      }
     }
-  });
+  );
 
   return db;
 }

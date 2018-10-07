@@ -4,15 +4,9 @@ import * as express from 'express';
 
 import * as cors from 'cors';
 
-import {
-  apolloExpress,
-  graphiqlExpress,
-} from 'apollo-server';
+import { apolloExpress, graphiqlExpress } from 'apollo-server';
 
-import {
-  makeExecutableSchema,
-  addMockFunctionsToSchema,
-} from 'graphql-tools';
+import { makeExecutableSchema, addMockFunctionsToSchema } from 'graphql-tools';
 
 import * as bodyParser from 'body-parser';
 
@@ -21,10 +15,7 @@ import { OAuth2Client } from 'google-auth-library';
 import Schema from './data/schema';
 //import Mocks from './data/mocks';
 import Resolvers from './data/resolvers';
-import {
-  IrsDbConnector,
-  LedgerConnector,
-} from './data/connectors';
+import { IrsDbConnector, LedgerConnector } from './data/connectors';
 
 dotenv.config();
 
@@ -42,43 +33,53 @@ const executableSchema = makeExecutableSchema({
 //  preserveResolvers: true,
 //});
 
-server.use('/graphql', bodyParser.json(), apolloExpress({
-  schema: executableSchema,
-  context: {
-    connectors: {
-      IrsDb: new IrsDbConnector(),
-      Ledger: new LedgerConnector(),
+server.use(
+  '/graphql',
+  bodyParser.json(),
+  apolloExpress({
+    schema: executableSchema,
+    context: {
+      connectors: {
+        IrsDb: new IrsDbConnector(),
+        Ledger: new LedgerConnector(),
+      },
     },
-  },
-}));
+  })
+);
 
-server.use('/graphiql', graphiqlExpress({
-  endpointURL: '/graphql',
-}));
+server.use(
+  '/graphiql',
+  graphiqlExpress({
+    endpointURL: '/graphql',
+  })
+);
 
 // Auth
 if (!process.env.GOOGLE_CLIENT_ID) {
-  throw new Error('GOOGLE_CLIENT_ID environment variable is required to start.');
+  throw new Error(
+    'GOOGLE_CLIENT_ID environment variable is required to start.'
+  );
 }
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 async function verifyToken(idToken) {
   const ticket = await client.verifyIdToken({
-      idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
+    idToken,
+    audience: process.env.GOOGLE_CLIENT_ID,
   });
   const payload = ticket.getPayload();
   return payload;
 }
 
-const authenticateGoogleUser = user => process.env.ALLOWED_EMAILS.split(' ').includes(user.email);
+const authenticateGoogleUser = user =>
+  process.env.ALLOWED_EMAILS.split(' ').includes(user.email);
 
-const authenticatedOnly = (handler) => (req, res) => {
+const authenticatedOnly = handler => (req, res) => {
   if (req.headers['x-auth-token']) {
     try {
       verifyToken(req.headers['x-auth-token'])
-        .then((user) => {
+        .then(user => {
           req.user = user;
           if (authenticateGoogleUser(user)) {
             handler(req, res);
@@ -86,7 +87,7 @@ const authenticatedOnly = (handler) => (req, res) => {
             res.status(401).json({ error: 'Not on the list' });
           }
         })
-        .catch((e) => {
+        .catch(e => {
           if (e.message && e.message.includes('Token used too late')) {
             res.status(412).json({ error: 'Token expired' });
           } else {
@@ -99,12 +100,15 @@ const authenticatedOnly = (handler) => (req, res) => {
   } else {
     res.status(400).json({ error: 'Missing token' });
   }
-}
+};
 
-server.use('/getGoogleUser', authenticatedOnly((req, res) => {
-  res.status(200).json({ user: req.user });
-}));
+server.use(
+  '/getGoogleUser',
+  authenticatedOnly((req, res) => {
+    res.status(200).json({ user: req.user });
+  })
+);
 
-server.listen(process.env.PORT, () => console.log(
-  `Server is now running on http://localhost:${process.env.PORT}/`
-));
+server.listen(process.env.PORT, () =>
+  console.log(`Server is now running on http://localhost:${process.env.PORT}/`)
+);

@@ -9,52 +9,60 @@ import db from './db/models';
 dotenv.config();
 
 export class IrsDbConnector {
-
   constructor() {
-    this.db = new Sequelize(process.env.PG_DATABASE, process.env.PG_USER, process.env.PG_PASSWORD, {
-      host: process.env.PG_HOST,
-      port: process.env.PG_PORT,
-      dialect: 'postgres',
-      dialectOptions: {
-        ssl: (process.env.PG_SSLMODE === 'require'),
-      },
-    });
+    this.db = new Sequelize(
+      process.env.PG_DATABASE,
+      process.env.PG_USER,
+      process.env.PG_PASSWORD,
+      {
+        host: process.env.PG_HOST,
+        port: process.env.PG_PORT,
+        dialect: 'postgres',
+        dialectOptions: {
+          ssl: process.env.PG_SSLMODE === 'require',
+        },
+      }
+    );
 
-    this.IrsDbModel = this.db.define('irsdb', {
-      source: Sequelize.STRING(50),
-      org: Sequelize.BIGINT,
-      ein: Sequelize.STRING(50),
-      subseccd: Sequelize.STRING(50),
-      pdf: Sequelize.STRING(255),
-      filing_type: Sequelize.STRING(50),
-      start_year: Sequelize.INTEGER,
-      end_year: Sequelize.INTEGER,
-      irs_year: Sequelize.INTEGER,
-      filing_date: Sequelize.STRING(25),
-      tax_period: Sequelize.STRING(25),
-      contributions_and_grants: Sequelize.BIGINT,
-      program_service_revenue: Sequelize.BIGINT,
-      investment_income: Sequelize.BIGINT,
-      other_revenue: Sequelize.BIGINT,
-      total_revenue: Sequelize.BIGINT,
-      grants_paid: Sequelize.BIGINT,
-      benefits_paid: Sequelize.BIGINT,
-      compensation: Sequelize.BIGINT,
-      fundraising_fees: Sequelize.BIGINT,
-      total_fundraising_expenses: Sequelize.BIGINT,
-      other_expenses: Sequelize.BIGINT,
-      total_expenses: Sequelize.BIGINT,
-      revenue_less_expenses: Sequelize.BIGINT,
-      total_assets: Sequelize.BIGINT,
-      total_liabilities: Sequelize.BIGINT,
-      net_assets: Sequelize.BIGINT,
-      data: Sequelize.JSONB,
-    }, {
-      freezeTableName: true,
-      createdAt: 'created_at',
-      updatedAt: 'updated_at',
-      tableName: 'combined',
-    });
+    this.IrsDbModel = this.db.define(
+      'irsdb',
+      {
+        source: Sequelize.STRING(50),
+        org: Sequelize.BIGINT,
+        ein: Sequelize.STRING(50),
+        subseccd: Sequelize.STRING(50),
+        pdf: Sequelize.STRING(255),
+        filing_type: Sequelize.STRING(50),
+        start_year: Sequelize.INTEGER,
+        end_year: Sequelize.INTEGER,
+        irs_year: Sequelize.INTEGER,
+        filing_date: Sequelize.STRING(25),
+        tax_period: Sequelize.STRING(25),
+        contributions_and_grants: Sequelize.BIGINT,
+        program_service_revenue: Sequelize.BIGINT,
+        investment_income: Sequelize.BIGINT,
+        other_revenue: Sequelize.BIGINT,
+        total_revenue: Sequelize.BIGINT,
+        grants_paid: Sequelize.BIGINT,
+        benefits_paid: Sequelize.BIGINT,
+        compensation: Sequelize.BIGINT,
+        fundraising_fees: Sequelize.BIGINT,
+        total_fundraising_expenses: Sequelize.BIGINT,
+        other_expenses: Sequelize.BIGINT,
+        total_expenses: Sequelize.BIGINT,
+        revenue_less_expenses: Sequelize.BIGINT,
+        total_assets: Sequelize.BIGINT,
+        total_liabilities: Sequelize.BIGINT,
+        net_assets: Sequelize.BIGINT,
+        data: Sequelize.JSONB,
+      },
+      {
+        freezeTableName: true,
+        createdAt: 'created_at',
+        updatedAt: 'updated_at',
+        tableName: 'combined',
+      }
+    );
   }
 
   get(ein) {
@@ -70,19 +78,19 @@ export class IrsDbConnector {
       offset,
     });
   }
-
 }
 
 export class LedgerConnector {
-
   /**
    * @param {Number} ein
    * @returns {Promise}
    */
   grantsByEin(ein, limit, offset) {
     return new Promise((resolve, reject) => {
-      const url = `${process.env.LEDGER_API_URL}/grants.json?filters[ein]=${ein}&limit=${limit}&offset=${offset}`;
-      const req = httpsGet(url, (res) => {
+      const url = `${
+        process.env.LEDGER_API_URL
+      }/grants.json?filters[ein]=${ein}&limit=${limit}&offset=${offset}`;
+      const req = httpsGet(url, res => {
         if (res.statusCode < 200 || res.statusCode > 299) {
           reject(new Error(`HTTP error: ${res.statusCode}`));
         }
@@ -93,7 +101,7 @@ export class LedgerConnector {
         res.on('end', () => {
           const data = JSON.parse(body.join(''));
 
-          resolve(data.grants.map((grant) => grantTemplate(grant)));
+          resolve(data.grants.map(grant => grantTemplate(grant)));
         });
       });
 
@@ -107,8 +115,10 @@ export class LedgerConnector {
    */
   organizationsByEin(ein, limit, offset) {
     return new Promise((resolve, reject) => {
-      const url = `${process.env.LEDGER_API_URL}/orgs.json?filters[ein]=${ein}&limit=${limit}&offset=${offset}`;
-      const req = httpsGet(url, (res) => {
+      const url = `${
+        process.env.LEDGER_API_URL
+      }/orgs.json?filters[ein]=${ein}&limit=${limit}&offset=${offset}`;
+      const req = httpsGet(url, res => {
         if (res.statusCode < 200 || res.statusCode > 299) {
           reject(new Error(`HTTP error: ${res.statusCode}`));
         }
@@ -131,16 +141,17 @@ export class LedgerConnector {
     });
   }
 
-
   /**
    * @param {Number} ein
    * @returns {Promise}
    */
   newsArticlesByEin(ein, limit, offset) {
     return new Promise((resolve, reject) => {
-      const url = `${process.env.LEDGER_API_URL}/newsarticles.json?filters[ein]=${ein}&limit=${limit}&offset=${offset}`;
+      const url = `${
+        process.env.LEDGER_API_URL
+      }/newsarticles.json?filters[ein]=${ein}&limit=${limit}&offset=${offset}`;
       console.log(url);
-      const req = httpsGet(url, (res) => {
+      const req = httpsGet(url, res => {
         if (res.statusCode < 200 || res.statusCode > 299) {
           reject(new Error(`HTTP error: ${res.statusCode}`));
         }
@@ -150,7 +161,7 @@ export class LedgerConnector {
         res.on('data', chunk => body.push(chunk));
         res.on('end', () => {
           const data = JSON.parse(body.join(''));
-          resolve(data.newsarticles.map((article) => newsTemplate(article)));
+          resolve(data.newsarticles.map(article => newsTemplate(article)));
         });
       });
 
@@ -166,7 +177,7 @@ export class LedgerConnector {
     return new Promise((resolve, reject) => {
       const url = `${process.env.LEDGER_API_URL}/orgs/${id}.json`;
       console.log(url);
-      const req = httpsGet(url, (res) => {
+      const req = httpsGet(url, res => {
         if (res.statusCode < 200 || res.statusCode > 299) {
           reject(new Error(`HTTP error: ${res.statusCode}`));
         }
@@ -191,7 +202,7 @@ export class LedgerConnector {
     return new Promise((resolve, reject) => {
       const url = `${process.env.LEDGER_API_URL}/orgs/${id}.json`;
       console.log(url);
-      const req = httpsGet(url, (res) => {
+      const req = httpsGet(url, res => {
         if (res.statusCode < 200 || res.statusCode > 299) {
           reject(new Error(`HTTP error: ${res.statusCode}`));
         }
@@ -210,7 +221,9 @@ export class LedgerConnector {
             end: org.org_grants_dateend,
             received: org.org_grants_received,
             funded: org.org_grants_funded,
-            stateCorpId: org.field_state_corp_id ? org.field_state_corp_id.value : null,
+            stateCorpId: org.field_state_corp_id
+              ? org.field_state_corp_id.value
+              : null,
           });
         });
       });
@@ -225,9 +238,11 @@ export class LedgerConnector {
    */
   grantsFunded(id, limit, offset) {
     return new Promise((resolve, reject) => {
-      const url = `${process.env.LEDGER_API_URL}/orgs/${id}/grants_funded.json?limit=${limit}&offset=${offset}`;
+      const url = `${
+        process.env.LEDGER_API_URL
+      }/orgs/${id}/grants_funded.json?limit=${limit}&offset=${offset}`;
       console.log(url);
-      const req = httpsGet(url, (res) => {
+      const req = httpsGet(url, res => {
         if (res.statusCode < 200 || res.statusCode > 299) {
           reject(new Error(`HTTP error: ${res.statusCode}`));
         }
@@ -238,7 +253,7 @@ export class LedgerConnector {
         res.on('end', () => {
           const data = JSON.parse(body.join(''));
 
-          resolve(data.grants_funded.map((grant) => grantTemplate(grant)));
+          resolve(data.grants_funded.map(grant => grantTemplate(grant)));
         });
       });
 
@@ -252,9 +267,11 @@ export class LedgerConnector {
    */
   grantsReceived(id, limit, offset) {
     return new Promise((resolve, reject) => {
-      const url = `${process.env.LEDGER_API_URL}/orgs/${id}/grants_received.json?limit=${limit}&offset=${offset}`;
+      const url = `${
+        process.env.LEDGER_API_URL
+      }/orgs/${id}/grants_received.json?limit=${limit}&offset=${offset}`;
       console.log(url);
-      const req = httpsGet(url, (res) => {
+      const req = httpsGet(url, res => {
         if (res.statusCode < 200 || res.statusCode > 299) {
           reject(new Error(`HTTP error: ${res.statusCode}`));
         }
@@ -265,7 +282,7 @@ export class LedgerConnector {
         res.on('end', () => {
           const data = JSON.parse(body.join(''));
 
-          resolve(data.grants_received.map((grant) => grantTemplate(grant)));
+          resolve(data.grants_received.map(grant => grantTemplate(grant)));
         });
       });
 
@@ -287,7 +304,9 @@ function orgTemplate(org) {
     ntees: org.field_ntee ? org.field_ntee.und : [],
     nteeIds: org.field_ntee ? Object.keys(org.field_ntee.und) : [],
     stateCorpId: org.field_state_corp_id ? org.field_state_corp_id.value : null,
-    newsArticles: org.news ? org.news.map((article) => newsTemplate(article)) : [],
+    newsArticles: org.news
+      ? org.news.map(article => newsTemplate(article))
+      : [],
   };
 }
 
@@ -306,7 +325,9 @@ function grantTemplate(grant) {
     end: grant.field_end_date,
     amount: grant.field_funded_amount,
     description: grant.body ? grant.body.und[0].value : null,
-    federalAwardId: grant.field_federal_award_id ? grant.field_federal_award_id.value : null,
+    federalAwardId: grant.field_federal_award_id
+      ? grant.field_federal_award_id.value
+      : null,
   };
 }
 
@@ -317,6 +338,6 @@ function newsTemplate(article) {
     desc: article.field_news_desc,
     date: article.field_news_date,
     link: article.field_news_link,
-    relatedOrgIds: article.field_news_org.map((el) => el.target_id),
+    relatedOrgIds: article.field_news_org.map(el => el.target_id),
   };
 }

@@ -14,7 +14,7 @@ const createIterator = function(typeName, limit, offset) {
 
 const mocks = {
   String: () => 'Hello world',
-/*  Query: () => ({
+  /*  Query: () => ({
     organization: (root, args) => {
       return { ein: args.ein };
     },

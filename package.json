@@ -46,6 +46,7 @@
     "eslint-plugin-import": "^1.14.0",
     "eslint-plugin-react": "^6.2.0",
     "graphql": "^0.7.0",
+    "prettier": "1.14.3",
     "sequelize-cli": "^4.1.1",
     "typescript": "3.0.3"
   },
