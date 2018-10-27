@@ -101,13 +101,11 @@ export default (sequelize: Sequelize.Sequelize) => {
     Organization.belongsToMany(OrganizationTag, {
       through: 'OrganizationOrganizationTag',
     });
-    Organization.belongsToMany(Grant, {
-      through: 'Grants',
+    Organization.hasMany(Grant, {
       as: 'OrganizationGrantsFunded',
       foreignKey: 'from',
     });
-    Organization.belongsToMany(Grant, {
-      through: 'Grants',
+    Organization.hasMany(Grant, {
       as: 'OrganizationGrantsReceived',
       foreignKey: 'to',
     });
