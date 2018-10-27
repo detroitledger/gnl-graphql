@@ -72,6 +72,7 @@ export default (sequelize: Sequelize.Sequelize) => {
     ein: { type: Sequelize.INTEGER, allowNull: true },
     duns: { type: Sequelize.INTEGER, allowNull: true },
     stateCorpId: { type: Sequelize.INTEGER, allowNull: true },
+    description: { type: Sequelize.TEXT, allowNull: true },
     address: { type: Sequelize.JSON, allowNull: true },
     links: { type: Sequelize.JSON, allowNull: true },
     founded: { type: Sequelize.DATEONLY, allowNull: true },

@@ -99,6 +99,10 @@ const getMigrationCommands = Sequelize => [
           type: Sequelize.INTEGER,
           allowNull: true,
         },
+        description: {
+          type: Sequelize.TEXT,
+          allowNull: true,
+        },
         address: {
           type: Sequelize.JSON,
           allowNull: true,
@@ -233,6 +237,38 @@ const getMigrationCommands = Sequelize => [
           },
           allowNull: false,
         },
+        dateFrom: {
+          type: Sequelize.DATEONLY,
+          allowNull: true,
+        },
+        dateTo: {
+          type: Sequelize.DATEONLY,
+          allowNull: true,
+        },
+        amount: {
+          type: Sequelize.BIGINT,
+          allowNull: true,
+        },
+        source: {
+          type: Sequelize.TEXT,
+          allowNull: true,
+        },
+        description: {
+          type: Sequelize.TEXT,
+          allowNull: true,
+        },
+        internalNotes: {
+          type: Sequelize.TEXT,
+          allowNull: true,
+        },
+        legacyData: {
+          type: Sequelize.JSON,
+          allowNull: true,
+        },
+        federalAwardId: {
+          type: Sequelize.STRING,
+          allowNull: true,
+        },
         createdAt: {
           type: Sequelize.DATE,
           allowNull: false,
@@ -311,6 +347,80 @@ const getMigrationCommands = Sequelize => [
           onDelete: 'CASCADE',
           references: {
             model: 'OrganizationTags',
+            key: 'id',
+          },
+          primaryKey: true,
+        },
+      },
+      {},
+    ],
+  },
+  {
+    fn: 'createTable',
+    params: [
+      'GrantNteeGrantType',
+      {
+        createdAt: {
+          type: Sequelize.DATE,
+          allowNull: false,
+        },
+        updatedAt: {
+          type: Sequelize.DATE,
+          allowNull: false,
+        },
+        GrantId: {
+          type: Sequelize.UUIDV4,
+          onUpdate: 'CASCADE',
+          onDelete: 'CASCADE',
+          references: {
+            model: 'Grants',
+            key: 'id',
+          },
+          primaryKey: true,
+        },
+        NteeGrantTypeId: {
+          type: Sequelize.UUIDV4,
+          onUpdate: 'CASCADE',
+          onDelete: 'CASCADE',
+          references: {
+            model: 'NteeGrantTypes',
+            key: 'id',
+          },
+          primaryKey: true,
+        },
+      },
+      {},
+    ],
+  },
+  {
+    fn: 'createTable',
+    params: [
+      'GrantGrantTag',
+      {
+        createdAt: {
+          type: Sequelize.DATE,
+          allowNull: false,
+        },
+        updatedAt: {
+          type: Sequelize.DATE,
+          allowNull: false,
+        },
+        GrantId: {
+          type: Sequelize.UUIDV4,
+          onUpdate: 'CASCADE',
+          onDelete: 'CASCADE',
+          references: {
+            model: 'Grants',
+            key: 'id',
+          },
+          primaryKey: true,
+        },
+        GrantTagId: {
+          type: Sequelize.UUIDV4,
+          onUpdate: 'CASCADE',
+          onDelete: 'CASCADE',
+          references: {
+            model: 'GrantTags',
             key: 'id',
           },
           primaryKey: true,

@@ -1,6 +1,8 @@
 import * as Sequelize from 'sequelize';
 
-export interface GrantTagAttributes {
+import { AbstractDrupalTagAttributes } from './abstractDrupalTag';
+
+export interface GrantTagAttributes extends AbstractDrupalTagAttributes {
   id?: string;
   name: string;
   description?: string;

@@ -1,8 +1,10 @@
 import * as Sequelize from 'sequelize';
 
+import { AbstractDrupalTagAttributes } from './abstractDrupalTag';
+
 // Included in Guidestar data
 // TODO: Where else do we get these?
-export interface NteeGrantTypeAttributes {
+export interface NteeGrantTypeAttributes extends AbstractDrupalTagAttributes {
   id?: string;
   name: string;
   description?: string;
