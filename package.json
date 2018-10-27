@@ -46,6 +46,8 @@
     "eslint-plugin-import": "^1.14.0",
     "eslint-plugin-react": "^6.2.0",
     "graphql": "^0.7.0",
+    "husky": "^1.1.2",
+    "precise-commits": "^1.0.2",
     "prettier": "1.14.3",
     "sequelize-cli": "^4.1.1",
     "typescript": "3.0.3"
@@ -71,6 +73,11 @@
     },
     "env": {
       "mocha": true
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "precise-commits"
     }
   }
 }
