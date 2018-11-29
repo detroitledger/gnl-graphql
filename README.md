@@ -12,6 +12,17 @@ By default the dev environment uses a sqlite database `devdb.sqlite` that is cre
 
 Initalize the database by running `yarn run sequelize db:migrate`
 
+## Importing legacy data
+
+TODO: real docs
+
+Start from scratch & run an import:
+
+```
+rm devdb.sqlite
+( yarn run sequelize db:migrate && yarn tsc && node dist/scripts/tagImporter.js && node dist/scripts/orgImporter.js ) | yarn bunyan -l ERROR
+```
+
 ## Config
 
 We use the `config` package to manage our configurations. See `config/default.toml`.

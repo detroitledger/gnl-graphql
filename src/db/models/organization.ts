@@ -26,6 +26,12 @@ export interface OrganizationAttributes {
   publicFunder?: boolean;
   createdAt?: string;
   updatedAt?: string;
+
+  // Relationships
+  getOrganizationTags?: Sequelize.BelongsToGetAssociationMixin<OrganizationTagInstance[]>;
+  setOrganizationTags?: Sequelize.BelongsToSetAssociationMixin<OrganizationTagInstance[], number[]>;
+  getNteeOrganizationTypes?: Sequelize.BelongsToGetAssociationMixin<NteeOrganizationTypeInstance[]>;
+  setNteeOrganizationTypes?: Sequelize.BelongsToSetAssociationMixin<NteeOrganizationTypeInstance[], number[]>;
 }
 
 // Follows the lead of https://github.com/commerceguys/addressing#data-model

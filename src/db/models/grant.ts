@@ -4,7 +4,7 @@ import { OrganizationInstance, OrganizationAttributes } from './organization';
 import {
   NteeGrantTypeInstance,
   NteeGrantTypeAttributes,
-} from './NteeGrantType';
+} from './nteeGrantType';
 import { GrantTagInstance, GrantTagAttributes } from './grantTag';
 
 export interface GrantAttributes {

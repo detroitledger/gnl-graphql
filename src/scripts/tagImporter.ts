@@ -8,7 +8,7 @@ import dbFactory, * as models from '../db/models';
 const db = dbFactory() as models.Db;
 
 const DATADIR =
-  '/Users/bc/gnl/data.detroitledger.org/profiles/gnl_profile/exporters';
+  '/home/bc/gnl/data.detroitledger.org/profiles/gnl_profile/exporters';
 
 const createBasicParser = (model: Sequelize.Model<any, any>) => (err, data) =>
   data.map(datum => model.create(datum));
