@@ -8,5 +8,7 @@ export interface AbstractDrupalTagAttributes {
   updatedAt?: string;
 }
 
-export type AbstractDrupalTagInstance = Sequelize.Instance<AbstractDrupalTagAttributes> &
+export type AbstractDrupalTagInstance = Sequelize.Instance<
+  AbstractDrupalTagAttributes
+> &
   AbstractDrupalTagAttributes;

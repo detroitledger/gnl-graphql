@@ -25,30 +25,36 @@ const DATADIR =
 export const orgs = require(`${DATADIR}/orgs.json`).orgs;
 
 export const findTag = async (
-  model: Sequelize.Model<AbstractDrupalTagInstance, AbstractDrupalTagAttributes>,
+  model: Sequelize.Model<
+    AbstractDrupalTagInstance,
+    AbstractDrupalTagAttributes
+  >,
   drupalId: number
-): Promise<AbstractDrupalTagInstance|null> => {
+): Promise<AbstractDrupalTagInstance | null> => {
   const existingTag = await model.findOne({ where: { drupalId } });
 
   return existingTag;
 };
 
 export const checkTagsExist = async (
-  model: Sequelize.Model<AbstractDrupalTagInstance, AbstractDrupalTagAttributes>,
+  model: Sequelize.Model<
+    AbstractDrupalTagInstance,
+    AbstractDrupalTagAttributes
+  >,
   sourceField: string
 ) => {
   for (const drupalOrg of orgs) {
     if (drupalOrg[sourceField] != null) {
       try {
         for (const tid of Object.keys(drupalOrg[sourceField].und)) {
-          const existingTag = await model.findOne({ where: { drupalId: tid }});
+          const existingTag = await model.findOne({ where: { drupalId: tid } });
           if (!existingTag) {
             console.warn('oh shit', { drupalOrg });
             return false;
           }
         }
       } catch (e) {
-        console.error(e)
+        console.error(e);
       }
     }
   }
@@ -68,30 +74,35 @@ const importOrg = async drupalOrg => {
     // org tags multi
     description: drupalOrg.body && drupalOrg.body.und[0].value,
     address: drupalOrg.field_org_address
-      ? {
-        countryCode: drupalOrg.field_org_address.country,
-        administrativeArea: drupalOrg.field_org_address.administrative_area,
-        locality: drupalOrg.field_org_address.locality,
-        dependentLocality: drupalOrg.field_org_address.dependent_locality,
-        postalCode: drupalOrg.field_org_address.postal_code,
-        addressLine1: drupalOrg.field_org_address.thoroughfare,
-        addressLine2: drupalOrg.field_org_address.premise,
-        organization: drupalOrg.field_org_address.organisation_name,
-        givenName: drupalOrg.field_org_address.first_name,
-        familyName: drupalOrg.field_org_address.last_name,
-      } as Address
+      ? ({
+          countryCode: drupalOrg.field_org_address.country,
+          administrativeArea: drupalOrg.field_org_address.administrative_area,
+          locality: drupalOrg.field_org_address.locality,
+          dependentLocality: drupalOrg.field_org_address.dependent_locality,
+          postalCode: drupalOrg.field_org_address.postal_code,
+          addressLine1: drupalOrg.field_org_address.thoroughfare,
+          addressLine2: drupalOrg.field_org_address.premise,
+          organization: drupalOrg.field_org_address.organisation_name,
+          givenName: drupalOrg.field_org_address.first_name,
+          familyName: drupalOrg.field_org_address.last_name,
+        } as Address)
       : null,
-    links: drupalOrg.field_org_links && drupalOrg.field_org_links.map(link => ({
-      description: link.title,
-      url: link.url,
-    })) as Link,
+    links:
+      drupalOrg.field_org_links &&
+      (drupalOrg.field_org_links.map(link => ({
+        description: link.title,
+        url: link.url,
+      })) as Link),
     founded: makeDateonly(drupalOrg.field_org_lifespan, 'value'),
     dissolved: makeDateonly(drupalOrg.field_org_lifespan, 'value2'),
-    publicFunder: drupalOrg.field_publicfunder && drupalOrg.field_publicfunder.value == '1',
+    publicFunder:
+      drupalOrg.field_publicfunder && drupalOrg.field_publicfunder.value == '1',
     legacyData: {
       drupalId: drupalOrg.id,
       clientProject: drupalOrg.field_client_project
-        ? drupalOrg.field_client_project.und[Object.keys(drupalOrg.field_client_project.und)[0]].name
+        ? drupalOrg.field_client_project.und[
+            Object.keys(drupalOrg.field_client_project.und)[0]
+          ].name
         : null,
     } as LegacyData,
   } as OrganizationAttributes;
@@ -99,12 +110,17 @@ const importOrg = async drupalOrg => {
   const org = await db.Organization.create(cleansed);
 
   // Tags
-  if (drupalOrg.field_org_tags && Object.keys(drupalOrg.field_org_tags.und).length > 0) {
-    const tags = await db.OrganizationTag.findAll({ where: {
-      drupalId: {
-        [Op.in]: Object.keys(drupalOrg.field_org_tags.und),
+  if (
+    drupalOrg.field_org_tags &&
+    Object.keys(drupalOrg.field_org_tags.und).length > 0
+  ) {
+    const tags = await db.OrganizationTag.findAll({
+      where: {
+        drupalId: {
+          [Op.in]: Object.keys(drupalOrg.field_org_tags.und),
+        },
       },
-    }});
+    });
 
     // Dumb guard
     if (org.setOrganizationTags) {
@@ -113,12 +129,17 @@ const importOrg = async drupalOrg => {
   }
 
   // NTEE codes
-  if (drupalOrg.field_ntee && Object.keys(drupalOrg.field_ntee.und).length > 0) {
-    const ntees = await db.NteeOrganizationType.findAll({ where: {
-      drupalId: {
-        [Op.in]: Object.keys(drupalOrg.field_ntee.und),
+  if (
+    drupalOrg.field_ntee &&
+    Object.keys(drupalOrg.field_ntee.und).length > 0
+  ) {
+    const ntees = await db.NteeOrganizationType.findAll({
+      where: {
+        drupalId: {
+          [Op.in]: Object.keys(drupalOrg.field_ntee.und),
+        },
       },
-    }});
+    });
 
     // Dumb guard
     if (org.setNteeOrganizationTypes) {
@@ -129,7 +150,7 @@ const importOrg = async drupalOrg => {
   return org;
 };
 
-function makeDateonly(field, subfield): Date|null {
+function makeDateonly(field, subfield): Date | null {
   if (!field || !field[subfield]) return null;
 
   const year = field[subfield].substring(0, 4);
@@ -140,12 +161,18 @@ function makeDateonly(field, subfield): Date|null {
 }
 
 export const doImport = async () => {
-  const allTagsExist = await checkTagsExist(db.OrganizationTag, 'field_org_tags');
-  console.log({ allTagsExist })
+  const allTagsExist = await checkTagsExist(
+    db.OrganizationTag,
+    'field_org_tags'
+  );
+  console.log({ allTagsExist });
   if (!allTagsExist) process.exit(1);
-  
-  const allNteeOrganizationTypesExist = await checkTagsExist(db.NteeOrganizationType, 'field_ntee');
-  console.log({ allNteeOrganizationTypesExist })
+
+  const allNteeOrganizationTypesExist = await checkTagsExist(
+    db.NteeOrganizationType,
+    'field_ntee'
+  );
+  console.log({ allNteeOrganizationTypesExist });
   if (!allNteeOrganizationTypesExist) process.exit(1);
 
   const org = await importOrg(orgs[0]);
@@ -154,6 +181,5 @@ export const doImport = async () => {
     await importOrg(drupalOrg);
   }
 };
-
 
 doImport();
