@@ -19,8 +19,9 @@ const { Op } = Sequelize;
 
 export const db = dbFactory() as models.Db;
 
-const DATADIR =
-  '/home/bc/gnl/data.detroitledger.org/profiles/gnl_profile/exporters';
+const DATADIR = `${
+  process.env.HOME
+}/gnl/data.detroitledger.org/profiles/gnl_profile/exporters`;
 
 export const orgs = require(`${DATADIR}/orgs.json`).orgs;
 
