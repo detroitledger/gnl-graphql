@@ -15,6 +15,13 @@ import {
 
 import dbFactory, * as models from '../db/models';
 
+import {
+  checkTagsExist,
+  findTag,
+  makeDateonly,
+  setTagfield,
+} from './importHelpers';
+
 const { Op } = Sequelize;
 
 export const db = dbFactory() as models.Db;
@@ -24,44 +31,6 @@ const DATADIR = `${
 }/gnl/data.detroitledger.org/profiles/gnl_profile/exporters`;
 
 export const orgs = require(`${DATADIR}/orgs.json`).orgs;
-
-export const findTag = async (
-  model: Sequelize.Model<
-    AbstractDrupalTagInstance,
-    AbstractDrupalTagAttributes
-  >,
-  drupalId: number
-): Promise<AbstractDrupalTagInstance | null> => {
-  const existingTag = await model.findOne({ where: { drupalId } });
-
-  return existingTag;
-};
-
-export const checkTagsExist = async (
-  model: Sequelize.Model<
-    AbstractDrupalTagInstance,
-    AbstractDrupalTagAttributes
-  >,
-  sourceField: string
-) => {
-  for (const drupalOrg of orgs) {
-    if (drupalOrg[sourceField] != null) {
-      try {
-        for (const tid of Object.keys(drupalOrg[sourceField].und)) {
-          const existingTag = await model.findOne({ where: { drupalId: tid } });
-          if (!existingTag) {
-            console.warn('oh shit', { drupalOrg });
-            return false;
-          }
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  }
-
-  return true;
-};
 
 const importOrg = async drupalOrg => {
   const cleansed = {
@@ -112,68 +81,20 @@ const importOrg = async drupalOrg => {
   const org = await db.Organization.create(cleansed);
 
   // Tags
-  if (
-    drupalOrg.field_org_tags &&
-    Object.keys(drupalOrg.field_org_tags.und).length > 0
-  ) {
-    const tags = await db.OrganizationTag.findAll({
-      where: {
-        drupalId: {
-          [Op.in]: Object.keys(drupalOrg.field_org_tags.und),
-        },
-      },
-    });
-
-    // Dumb guard
-    if (org.setOrganizationTags) {
-      await org.setOrganizationTags(tags);
-    }
-  }
+  await setTagfield(drupalOrg.field_org_tags, db.OrganizationTag, org, 'setOrganizationTags');
 
   // NTEE codes
-  if (
-    drupalOrg.field_ntee &&
-    Object.keys(drupalOrg.field_ntee.und).length > 0
-  ) {
-    const ntees = await db.NteeOrganizationType.findAll({
-      where: {
-        drupalId: {
-          [Op.in]: Object.keys(drupalOrg.field_ntee.und),
-        },
-      },
-    });
-
-    // Dumb guard
-    if (org.setNteeOrganizationTypes) {
-      await org.setNteeOrganizationTypes(ntees);
-    }
-  }
+  await setTagfield(drupalOrg.field_ntee, db.NteeOrganizationType, org, 'setNteeOrganizationTypes');
 
   return org;
 };
 
-function makeDateonly(field, subfield): Date | null {
-  if (!field || !field[subfield]) return null;
-
-  const year = field[subfield].substring(0, 4);
-  const month = field[subfield].substring(5, 7);
-  const day = field[subfield].substring(8, 10);
-
-  return new Date(year, month, day);
-}
-
 export const doImport = async () => {
-  const allTagsExist = await checkTagsExist(
-    db.OrganizationTag,
-    'field_org_tags'
-  );
+  const allTagsExist = await checkTagsExist(db.OrganizationTag, 'field_org_tags', orgs);
   console.log({ allTagsExist });
   if (!allTagsExist) process.exit(1);
 
-  const allNteeOrganizationTypesExist = await checkTagsExist(
-    db.NteeOrganizationType,
-    'field_ntee'
-  );
+  const allNteeOrganizationTypesExist = await checkTagsExist(db.NteeOrganizationType, 'field_ntee', orgs);
   console.log({ allNteeOrganizationTypesExist });
   if (!allNteeOrganizationTypesExist) process.exit(1);
 
