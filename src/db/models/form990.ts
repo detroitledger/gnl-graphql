@@ -1,7 +1,7 @@
 import * as Sequelize from 'sequelize';
 
 export interface Form990Attributes {
-  id?: string;
+  id?: number;
   source: string;
   org: number;
   ein: string;
@@ -39,11 +39,6 @@ export type Form990Instance = Sequelize.Instance<Form990Attributes> &
 
 export default (sequelize: Sequelize.Sequelize) =>
   sequelize.define<Form990Instance, Form990Attributes>('Form990', {
-    id: {
-      type: Sequelize.UUIDV4,
-      primaryKey: true,
-      defaultValue: Sequelize.UUIDV4,
-    },
     source: Sequelize.STRING(50),
     org: Sequelize.BIGINT,
     ein: Sequelize.STRING(50),
