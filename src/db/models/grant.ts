@@ -10,8 +10,8 @@ import { GrantTagInstance, GrantTagAttributes } from './grantTag';
 export interface GrantAttributes {
   id?: number;
   uuid?: string;
-  from: OrganizationInstance;
-  to: OrganizationInstance;
+  from: number;
+  to: number;
   dateFrom?: Date;
   dateTo?: Date;
   amount?: number;
@@ -22,6 +22,20 @@ export interface GrantAttributes {
   federalAwardId?: string;
   createdAt?: string;
   updatedAt?: string;
+
+  // Relationships
+  getGrantTags?: Sequelize.BelongsToGetAssociationMixin<GrantTagInstance[]>;
+  setGrantTags?: Sequelize.BelongsToSetAssociationMixin<
+    GrantTagInstance[],
+    number[]
+  >;
+  getNteeGrantTypes?: Sequelize.BelongsToGetAssociationMixin<
+    NteeGrantTypeInstance[]
+  >;
+  setNteeGrantTypes?: Sequelize.BelongsToSetAssociationMixin<
+    NteeGrantTypeInstance[],
+    number[]
+  >;
 }
 
 export interface Link {
@@ -46,12 +60,12 @@ export default (sequelize: Sequelize.Sequelize) => {
       defaultValue: Sequelize.UUIDV4,
     },
     from: {
-      type: Sequelize.UUIDV4,
+      type: Sequelize.INTEGER,
       allowNull: false,
       references: { model: sequelize.models.organization, key: 'id' },
     },
     to: {
-      type: Sequelize.UUIDV4,
+      type: Sequelize.INTEGER,
       allowNull: false,
       references: { model: sequelize.models.organization, key: 'id' },
     },

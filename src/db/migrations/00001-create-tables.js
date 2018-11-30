@@ -116,11 +116,11 @@ const getMigrationCommands = Sequelize => [
           allowNull: true,
         },
         address: {
-          type: Sequelize.JSON,
+          type: Sequelize.JSONB,
           allowNull: true,
         },
         links: {
-          type: Sequelize.JSON,
+          type: Sequelize.JSONB,
           allowNull: true,
         },
         founded: {
@@ -132,7 +132,7 @@ const getMigrationCommands = Sequelize => [
           allowNull: true,
         },
         legacyData: {
-          type: Sequelize.JSON,
+          type: Sequelize.JSONB,
           allowNull: true,
         },
         publicFunder: {
@@ -246,7 +246,7 @@ const getMigrationCommands = Sequelize => [
           defaultValue: Sequelize.UUIDV4,
         },
         from: {
-          type: Sequelize.UUIDV4,
+          type: Sequelize.INTEGER,
           references: {
             model: 'Organizations',
             key: 'id',
@@ -254,7 +254,7 @@ const getMigrationCommands = Sequelize => [
           allowNull: false,
         },
         to: {
-          type: Sequelize.UUIDV4,
+          type: Sequelize.INTEGER,
           references: {
             model: 'Organizations',
             key: 'id',
@@ -286,7 +286,7 @@ const getMigrationCommands = Sequelize => [
           allowNull: true,
         },
         legacyData: {
-          type: Sequelize.JSON,
+          type: Sequelize.JSONB,
           allowNull: true,
         },
         federalAwardId: {

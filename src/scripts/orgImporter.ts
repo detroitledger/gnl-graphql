@@ -81,24 +81,40 @@ const importOrg = async drupalOrg => {
   const org = await db.Organization.create(cleansed);
 
   // Tags
-  await setTagfield(drupalOrg.field_org_tags, db.OrganizationTag, org, 'setOrganizationTags');
+  await setTagfield(
+    drupalOrg.field_org_tags,
+    db.OrganizationTag,
+    org,
+    'setOrganizationTags'
+  );
 
   // NTEE codes
-  await setTagfield(drupalOrg.field_ntee, db.NteeOrganizationType, org, 'setNteeOrganizationTypes');
+  await setTagfield(
+    drupalOrg.field_ntee,
+    db.NteeOrganizationType,
+    org,
+    'setNteeOrganizationTypes'
+  );
 
   return org;
 };
 
 export const doImport = async () => {
-  const allTagsExist = await checkTagsExist(db.OrganizationTag, 'field_org_tags', orgs);
+  const allTagsExist = await checkTagsExist(
+    db.OrganizationTag,
+    'field_org_tags',
+    orgs
+  );
   console.log({ allTagsExist });
   if (!allTagsExist) process.exit(1);
 
-  const allNteeOrganizationTypesExist = await checkTagsExist(db.NteeOrganizationType, 'field_ntee', orgs);
+  const allNteeOrganizationTypesExist = await checkTagsExist(
+    db.NteeOrganizationType,
+    'field_ntee',
+    orgs
+  );
   console.log({ allNteeOrganizationTypesExist });
   if (!allNteeOrganizationTypesExist) process.exit(1);
-
-  const org = await importOrg(orgs[0]);
 
   for (const drupalOrg of orgs) {
     await importOrg(drupalOrg);

@@ -20,7 +20,7 @@ Start from scratch & run an import:
 
 ```
 rm devdb.sqlite
-( yarn run sequelize db:migrate && yarn tsc && node dist/scripts/tagImporter.js && node dist/scripts/orgImporter.js ) | yarn bunyan -l ERROR
+( yarn run sequelize db:migrate && yarn tsc && node dist/scripts/tagImporter.js && node dist/scripts/orgImporter.js && node dist/scripts/grantImporter.js ) | yarn bunyan -l ERROR
 ```
 
 ## Config
