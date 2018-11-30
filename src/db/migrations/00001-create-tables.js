@@ -7,9 +7,13 @@ const getMigrationCommands = Sequelize => [
       'GrantTags',
       {
         id: {
+          type: Sequelize.INTEGER,
+          autoIncrement: true,
+          primaryKey: true,
+        },
+        uuid: {
           type: Sequelize.UUIDV4,
           defaultValue: Sequelize.UUIDV4,
-          primaryKey: true,
         },
         name: {
           type: Sequelize.STRING,
@@ -41,9 +45,13 @@ const getMigrationCommands = Sequelize => [
       'NteeGrantTypes',
       {
         id: {
+          type: Sequelize.INTEGER,
+          autoIncrement: true,
+          primaryKey: true,
+        },
+        uuid: {
           type: Sequelize.UUIDV4,
           defaultValue: Sequelize.UUIDV4,
-          primaryKey: true,
         },
         name: {
           type: Sequelize.STRING,
@@ -79,9 +87,13 @@ const getMigrationCommands = Sequelize => [
       'Organizations',
       {
         id: {
+          type: Sequelize.INTEGER,
+          autoIncrement: true,
+          primaryKey: true,
+        },
+        uuid: {
           type: Sequelize.UUIDV4,
           defaultValue: Sequelize.UUIDV4,
-          primaryKey: true,
         },
         name: {
           type: Sequelize.STRING,
@@ -145,9 +157,13 @@ const getMigrationCommands = Sequelize => [
       'OrganizationTags',
       {
         id: {
+          type: Sequelize.INTEGER,
+          autoIncrement: true,
+          primaryKey: true,
+        },
+        uuid: {
           type: Sequelize.UUIDV4,
           defaultValue: Sequelize.UUIDV4,
-          primaryKey: true,
         },
         name: {
           type: Sequelize.STRING,
@@ -179,9 +195,13 @@ const getMigrationCommands = Sequelize => [
       'NteeOrganizationTypes',
       {
         id: {
+          type: Sequelize.INTEGER,
+          autoIncrement: true,
+          primaryKey: true,
+        },
+        uuid: {
           type: Sequelize.UUIDV4,
           defaultValue: Sequelize.UUIDV4,
-          primaryKey: true,
         },
         name: {
           type: Sequelize.STRING,
@@ -217,9 +237,13 @@ const getMigrationCommands = Sequelize => [
       'Grants',
       {
         id: {
+          type: Sequelize.INTEGER,
+          autoIncrement: true,
+          primaryKey: true,
+        },
+        uuid: {
           type: Sequelize.UUIDV4,
           defaultValue: Sequelize.UUIDV4,
-          primaryKey: true,
         },
         from: {
           type: Sequelize.UUIDV4,
@@ -295,7 +319,7 @@ const getMigrationCommands = Sequelize => [
           allowNull: false,
         },
         OrganizationId: {
-          type: Sequelize.UUIDV4,
+          type: Sequelize.INTEGER,
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE',
           references: {
@@ -305,7 +329,7 @@ const getMigrationCommands = Sequelize => [
           primaryKey: true,
         },
         NteeOrganizationTypeId: {
-          type: Sequelize.UUIDV4,
+          type: Sequelize.INTEGER,
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE',
           references: {
@@ -332,7 +356,7 @@ const getMigrationCommands = Sequelize => [
           allowNull: false,
         },
         OrganizationId: {
-          type: Sequelize.UUIDV4,
+          type: Sequelize.INTEGER,
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE',
           references: {
@@ -342,7 +366,7 @@ const getMigrationCommands = Sequelize => [
           primaryKey: true,
         },
         OrganizationTagId: {
-          type: Sequelize.UUIDV4,
+          type: Sequelize.INTEGER,
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE',
           references: {
@@ -369,7 +393,7 @@ const getMigrationCommands = Sequelize => [
           allowNull: false,
         },
         GrantId: {
-          type: Sequelize.UUIDV4,
+          type: Sequelize.INTEGER,
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE',
           references: {
@@ -379,7 +403,7 @@ const getMigrationCommands = Sequelize => [
           primaryKey: true,
         },
         NteeGrantTypeId: {
-          type: Sequelize.UUIDV4,
+          type: Sequelize.INTEGER,
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE',
           references: {
@@ -406,7 +430,7 @@ const getMigrationCommands = Sequelize => [
           allowNull: false,
         },
         GrantId: {
-          type: Sequelize.UUIDV4,
+          type: Sequelize.INTEGER,
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE',
           references: {
@@ -416,7 +440,7 @@ const getMigrationCommands = Sequelize => [
           primaryKey: true,
         },
         GrantTagId: {
-          type: Sequelize.UUIDV4,
+          type: Sequelize.INTEGER,
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE',
           references: {

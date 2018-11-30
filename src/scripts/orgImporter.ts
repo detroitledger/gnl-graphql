@@ -105,6 +105,7 @@ const importOrg = async drupalOrg => {
           ].name
         : null,
     } as LegacyData,
+    uuid: drupalOrg.uuid,
   } as OrganizationAttributes;
 
   const org = await db.Organization.create(cleansed);

@@ -10,7 +10,8 @@ import {
 } from './organizationTag';
 
 export interface OrganizationAttributes {
-  id?: string;
+  id?: number;
+  uuid?: string;
   name: string;
   ein?: number;
   duns?: number;
@@ -79,9 +80,9 @@ export default (sequelize: Sequelize.Sequelize) => {
     OrganizationInstance,
     OrganizationAttributes
   >('Organization', {
-    id: {
+    uuid: {
       type: Sequelize.UUIDV4,
-      primaryKey: true,
+      allowNull: true,
       defaultValue: Sequelize.UUIDV4,
     },
     name: { type: Sequelize.STRING, allowNull: false },

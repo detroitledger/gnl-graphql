@@ -8,7 +8,8 @@ import {
 import { GrantTagInstance, GrantTagAttributes } from './grantTag';
 
 export interface GrantAttributes {
-  id?: string;
+  id?: number;
+  uuid?: string;
   from: OrganizationInstance;
   to: OrganizationInstance;
   dateFrom?: Date;
@@ -39,9 +40,9 @@ export type GrantInstance = Sequelize.Instance<GrantAttributes> &
 
 export default (sequelize: Sequelize.Sequelize) => {
   let Grant = sequelize.define<GrantInstance, GrantAttributes>('Grant', {
-    id: {
+    uuid: {
       type: Sequelize.UUIDV4,
-      primaryKey: true,
+      allowNull: true,
       defaultValue: Sequelize.UUIDV4,
     },
     from: {

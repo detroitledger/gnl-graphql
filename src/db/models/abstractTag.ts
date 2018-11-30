@@ -1,7 +1,8 @@
 import * as Sequelize from 'sequelize';
 
 export interface AbstractTagAttributes {
-  id?: string;
+  id?: number;
+  uuid?: string;
   name: string;
   createdAt?: string;
   updatedAt?: string;

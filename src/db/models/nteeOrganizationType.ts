@@ -7,7 +7,8 @@ import { AbstractDrupalTagAttributes } from './abstractDrupalTag';
 // http://www.guidestar.org/rxg/help/ntee-codes.aspx
 export interface NteeOrganizationTypeAttributes
   extends AbstractDrupalTagAttributes {
-  id?: string;
+  id?: number;
+  uuid?: string;
   name: string;
   code: string;
   description?: string;
@@ -26,9 +27,9 @@ export default (sequelize: Sequelize.Sequelize) =>
     NteeOrganizationTypeInstance,
     NteeOrganizationTypeAttributes
   >('NteeOrganizationType', {
-    id: {
+    uuid: {
       type: Sequelize.UUIDV4,
-      primaryKey: true,
+      allowNull: true,
       defaultValue: Sequelize.UUIDV4,
     },
     name: { type: Sequelize.STRING, allowNull: false },

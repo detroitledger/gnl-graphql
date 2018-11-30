@@ -3,7 +3,8 @@ import * as Sequelize from 'sequelize';
 import { AbstractDrupalTagAttributes } from './abstractDrupalTag';
 
 export interface OrganizationTagAttributes extends AbstractDrupalTagAttributes {
-  id?: string;
+  id?: number;
+  uuid?: string;
   name: string;
   description?: string;
   drupalId?: number;
@@ -20,9 +21,9 @@ export default (sequelize: Sequelize.Sequelize) =>
   sequelize.define<OrganizationTagInstance, OrganizationTagAttributes>(
     'OrganizationTag',
     {
-      id: {
+      uuid: {
         type: Sequelize.UUIDV4,
-        primaryKey: true,
+        allowNull: true,
         defaultValue: Sequelize.UUIDV4,
       },
       name: { type: Sequelize.STRING, allowNull: false },

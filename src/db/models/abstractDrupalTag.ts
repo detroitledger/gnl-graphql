@@ -1,7 +1,8 @@
 import * as Sequelize from 'sequelize';
 
 export interface AbstractDrupalTagAttributes {
-  id?: string;
+  id?: number;
+  uuid?: string;
   drupalId?: number;
   name: string;
   createdAt?: string;
