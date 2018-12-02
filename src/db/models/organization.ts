@@ -13,9 +13,9 @@ export interface OrganizationAttributes {
   id?: number;
   uuid?: string;
   name: string;
-  ein?: number;
-  duns?: number;
-  stateCorpId?: number;
+  ein?: string;
+  duns?: string;
+  stateCorpId?: string;
   // org ntee codes multi
   // org tags multi
   description?: string;
@@ -86,9 +86,9 @@ export default (sequelize: Sequelize.Sequelize) => {
       defaultValue: Sequelize.UUIDV4,
     },
     name: { type: Sequelize.STRING, allowNull: false },
-    ein: { type: Sequelize.INTEGER, allowNull: true },
-    duns: { type: Sequelize.INTEGER, allowNull: true },
-    stateCorpId: { type: Sequelize.INTEGER, allowNull: true },
+    ein: { type: Sequelize.STRING, allowNull: true },
+    duns: { type: Sequelize.STRING, allowNull: true },
+    stateCorpId: { type: Sequelize.STRING, allowNull: true },
     description: { type: Sequelize.TEXT, allowNull: true },
     address: { type: Sequelize.JSON, allowNull: true },
     links: { type: Sequelize.JSON, allowNull: true },

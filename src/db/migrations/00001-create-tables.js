@@ -12,7 +12,7 @@ const getMigrationCommands = Sequelize => [
           primaryKey: true,
         },
         uuid: {
-          type: Sequelize.UUIDV4,
+          type: Sequelize.UUID,
           defaultValue: Sequelize.UUIDV4,
         },
         name: {
@@ -50,7 +50,7 @@ const getMigrationCommands = Sequelize => [
           primaryKey: true,
         },
         uuid: {
-          type: Sequelize.UUIDV4,
+          type: Sequelize.UUID,
           defaultValue: Sequelize.UUIDV4,
         },
         name: {
@@ -92,7 +92,7 @@ const getMigrationCommands = Sequelize => [
           primaryKey: true,
         },
         uuid: {
-          type: Sequelize.UUIDV4,
+          type: Sequelize.UUID,
           defaultValue: Sequelize.UUIDV4,
         },
         name: {
@@ -100,15 +100,15 @@ const getMigrationCommands = Sequelize => [
           allowNull: false,
         },
         ein: {
-          type: Sequelize.INTEGER,
+          type: Sequelize.STRING,
           allowNull: true,
         },
         duns: {
-          type: Sequelize.INTEGER,
+          type: Sequelize.TEXT,
           allowNull: true,
         },
         stateCorpId: {
-          type: Sequelize.INTEGER,
+          type: Sequelize.TEXT,
           allowNull: true,
         },
         description: {
@@ -162,7 +162,7 @@ const getMigrationCommands = Sequelize => [
           primaryKey: true,
         },
         uuid: {
-          type: Sequelize.UUIDV4,
+          type: Sequelize.UUID,
           defaultValue: Sequelize.UUIDV4,
         },
         name: {
@@ -200,7 +200,7 @@ const getMigrationCommands = Sequelize => [
           primaryKey: true,
         },
         uuid: {
-          type: Sequelize.UUIDV4,
+          type: Sequelize.UUID,
           defaultValue: Sequelize.UUIDV4,
         },
         name: {
@@ -242,7 +242,7 @@ const getMigrationCommands = Sequelize => [
           primaryKey: true,
         },
         uuid: {
-          type: Sequelize.UUIDV4,
+          type: Sequelize.UUID,
           defaultValue: Sequelize.UUIDV4,
         },
         from: {
