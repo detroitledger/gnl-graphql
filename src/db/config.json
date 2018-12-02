@@ -1,9 +1,10 @@
 {
   "development": {
-    "database": "gnl_graphql_dev",
+    "database": "gnl",
     "host": "127.0.0.1",
-    "dialect": "sqlite",
-    "storage": "./devdb.sqlite"
+    "dialect": "postgres",
+    "username": "bc",
+    "password": null
   },
   "test": {
     "username": "root",

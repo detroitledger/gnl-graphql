@@ -3,7 +3,7 @@ import * as Sequelize from 'sequelize';
 
 import { logger as baseLogger } from '../../logger';
 
-import form990Factory from './form990';
+import form990Factory, * as form990 from './form990';
 import grantTagFactory, * as grantTag from './grantTag';
 import organizationTagFactory, * as organizationTag from './organizationTag';
 import nteeGrantTypeFactory, * as nteeGrantType from './nteeGrantType';
@@ -14,6 +14,7 @@ import organizationFactory, * as organization from './organization';
 export interface Db {
   sequelize: Sequelize.Sequelize;
   Sequelize: Sequelize.SequelizeStatic;
+  Form990: Sequelize.Model<form990.Form990Instance, form990.Form990Attributes>;
   GrantTag: Sequelize.Model<
     grantTag.GrantTagInstance,
     grantTag.GrantTagAttributes
@@ -50,6 +51,7 @@ export default function dbFactory(): Db {
   const db: Db = {
     sequelize,
     Sequelize,
+    Form990: form990Factory(sequelize),
     GrantTag: grantTagFactory(sequelize),
     OrganizationTag: organizationTagFactory(sequelize),
     NteeGrantType: nteeGrantTypeFactory(sequelize),

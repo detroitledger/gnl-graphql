@@ -1,79 +1,45 @@
-import * as dotenv from 'dotenv';
+import * as config from 'config';
 
 import * as express from 'express';
 
 import * as cors from 'cors';
 
-import { apolloExpress, graphiqlExpress } from 'apollo-server';
-
-import { makeExecutableSchema, addMockFunctionsToSchema } from 'graphql-tools';
-
-import * as bodyParser from 'body-parser';
+import { postgraphile } from 'postgraphile';
 
 import { OAuth2Client } from 'google-auth-library';
-
-import Schema from './data/schema';
-//import Mocks from './data/mocks';
-import Resolvers from './data/resolvers';
-import { IrsDbConnector, LedgerConnector } from './data/connectors';
-
-dotenv.config();
 
 // add cors to fix 'access-control-allow-origin' error when connecting apollo graphql client app
 const server = express().use('*', cors());
 
-const executableSchema = makeExecutableSchema({
-  typeDefs: Schema,
-  resolvers: Resolvers,
-});
-
-//addMockFunctionsToSchema({
-//  schema: executableSchema,
-//  mocks: Mocks,
-//  preserveResolvers: true,
-//});
-
 server.use(
-  '/graphql',
-  bodyParser.json(),
-  apolloExpress({
-    schema: executableSchema,
-    context: {
-      connectors: {
-        IrsDb: new IrsDbConnector(),
-        Ledger: new LedgerConnector(),
-      },
-    },
-  })
-);
-
-server.use(
-  '/graphiql',
-  graphiqlExpress({
-    endpointURL: '/graphql',
+  postgraphile(process.env.DATABASE_URL || 'postgres:///', 'public', {
+    graphiql: true,
   })
 );
 
 // Auth
-if (!process.env.GOOGLE_CLIENT_ID) {
+if (!config.get('google.client_id')) {
   throw new Error(
     'GOOGLE_CLIENT_ID environment variable is required to start.'
   );
 }
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const client = new OAuth2Client(config.get('google.client_id'));
 
 async function verifyToken(idToken) {
   const ticket = await client.verifyIdToken({
     idToken,
-    audience: process.env.GOOGLE_CLIENT_ID,
+    audience: config.get('google.client_id'),
   });
   const payload = ticket.getPayload();
   return payload;
 }
 
 const authenticateGoogleUser = user =>
-  process.env.ALLOWED_EMAILS.split(' ').includes(user.email);
+  config
+    .get('auth.allowed_emails')
+    .split(' ')
+    .includes(user.email);
 
 const authenticatedOnly = handler => (req, res) => {
   if (req.headers['x-auth-token']) {
@@ -109,6 +75,6 @@ server.use(
   })
 );
 
-server.listen(process.env.PORT, () =>
+server.listen(config.get('port'), () =>
   console.log(`Server is now running on http://localhost:${process.env.PORT}/`)
 );
