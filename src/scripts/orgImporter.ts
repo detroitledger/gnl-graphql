@@ -85,7 +85,7 @@ const importOrg = async drupalOrg => {
     drupalOrg.field_org_tags,
     db.OrganizationTag,
     org,
-    'setOrganizationTags'
+    'setOrganizationOrganizationTag'
   );
 
   // NTEE codes
@@ -93,7 +93,7 @@ const importOrg = async drupalOrg => {
     drupalOrg.field_ntee,
     db.NteeOrganizationType,
     org,
-    'setNteeOrganizationTypes'
+    'setOrganizationNteeOrganizationType'
   );
 
   return org;

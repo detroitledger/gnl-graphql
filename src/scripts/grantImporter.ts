@@ -82,7 +82,7 @@ const importGrant = async drupalGrant => {
     drupalGrant.field_grant_tags,
     db.GrantTag,
     grant,
-    'setGrantTags'
+    'setGrantGrantTag'
   );
 
   // NTEE codes
@@ -90,7 +90,7 @@ const importGrant = async drupalGrant => {
     drupalGrant.field_grant_types,
     db.NteeGrantType,
     grant,
-    'setNteeGrantTypes'
+    'setGrantNteeGrantType'
   );
 
   return grant;
