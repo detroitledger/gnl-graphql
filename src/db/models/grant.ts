@@ -69,14 +69,41 @@ export default (sequelize: Sequelize.Sequelize) => {
       allowNull: false,
       references: { model: sequelize.models.organization, key: 'id' },
     },
-    dateFrom: { type: Sequelize.DATEONLY, allowNull: true },
-    dateTo: { type: Sequelize.DATEONLY, allowNull: true },
+    dateFrom: {
+      type: Sequelize.DATEONLY,
+      allowNull: true,
+      field: 'date_from',
+    },
+    dateTo: {
+      type: Sequelize.DATEONLY,
+      allowNull: true,
+      field: 'date_to',
+    },
     amount: { type: Sequelize.BIGINT, allowNull: true },
     source: { type: Sequelize.TEXT, allowNull: true },
     description: { type: Sequelize.TEXT, allowNull: true },
-    internalNotes: { type: Sequelize.TEXT, allowNull: true },
-    legacyData: { type: Sequelize.JSON, allowNull: true },
-    federalAwardId: { type: Sequelize.STRING, allowNull: true },
+    internalNotes: {
+      type: Sequelize.TEXT,
+      allowNull: true,
+      field: 'internal_notes',
+    },
+    legacyData: {
+      type: Sequelize.JSON,
+      allowNull: true,
+      field: 'legacy_data',
+    },
+    federalAwardId: {
+      type: Sequelize.STRING,
+      allowNull: true,
+      field: 'federal_award_id',
+    },
+  },
+  {
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
+    underscored: true,
+    freezeTableName: true,
+    tableName: 'grant',
   });
 
   Grant.associate = ({
@@ -91,15 +118,25 @@ export default (sequelize: Sequelize.Sequelize) => {
     GrantTag: Sequelize.Model<GrantTagInstance, GrantTagAttributes>;
     Organization: Sequelize.Model<OrganizationInstance, OrganizationAttributes>;
   }) => {
-    Grant.belongsToMany(GrantTag, { through: 'GrantGrantTag' });
-    Grant.belongsToMany(NteeGrantType, { through: 'GrantNteeGrantType' });
+    Grant.belongsToMany(GrantTag, {
+      through: 'grant_grant_tag',
+      as: 'GrantGrantTag',
+      foreignKey: 'grant_id',
+      otherKey: 'grant_tag_id',
+    });
+    Grant.belongsToMany(NteeGrantType, {
+      through: 'grant_ntee_grant_type',
+      as: 'GrantNteeGrantType',
+      foreignKey: 'grant_id',
+      otherKey: 'ntee_grant_type_id',
+    });
     Grant.belongsTo(Organization, {
-      as: 'GrantOrganizationFunder',
+      as: 'grant_organization_funder',
       foreignKey: 'from',
       targetKey: 'id',
     });
     Grant.belongsTo(Organization, {
-      as: 'GrantOrganizationRecipient',
+      as: 'grant_organization_recipient',
       foreignKey: 'to',
       targetKey: 'id',
     });

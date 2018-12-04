@@ -71,9 +71,10 @@ export default (sequelize: Sequelize.Sequelize) =>
       data: Sequelize.JSONB,
     },
     {
-      freezeTableName: true,
       createdAt: 'created_at',
       updatedAt: 'updated_at',
-      tableName: 'combined',
+      underscored: true,
+      freezeTableName: true,
+      tableName: 'form_990',
     }
   );

@@ -4,7 +4,7 @@ const getMigrationCommands = Sequelize => [
   {
     fn: 'createTable',
     params: [
-      'GrantTags',
+      'grant_tag',
       {
         id: {
           type: Sequelize.INTEGER,
@@ -23,15 +23,15 @@ const getMigrationCommands = Sequelize => [
           type: Sequelize.TEXT,
           allowNull: true,
         },
-        drupalId: {
+        drupal_id: {
           type: Sequelize.INTEGER,
           allowNull: true,
         },
-        createdAt: {
+        created_at: {
           type: Sequelize.DATE,
           allowNull: false,
         },
-        updatedAt: {
+        updated_at: {
           type: Sequelize.DATE,
           allowNull: false,
         },
@@ -42,7 +42,7 @@ const getMigrationCommands = Sequelize => [
   {
     fn: 'createTable',
     params: [
-      'NteeGrantTypes',
+      'ntee_grant_type',
       {
         id: {
           type: Sequelize.INTEGER,
@@ -65,15 +65,15 @@ const getMigrationCommands = Sequelize => [
           type: Sequelize.TEXT,
           allowNull: true,
         },
-        drupalId: {
+        drupal_id: {
           type: Sequelize.INTEGER,
           allowNull: true,
         },
-        createdAt: {
+        created_at: {
           type: Sequelize.DATE,
           allowNull: false,
         },
-        updatedAt: {
+        updated_at: {
           type: Sequelize.DATE,
           allowNull: false,
         },
@@ -84,7 +84,7 @@ const getMigrationCommands = Sequelize => [
   {
     fn: 'createTable',
     params: [
-      'Organizations',
+      'organization',
       {
         id: {
           type: Sequelize.INTEGER,
@@ -107,7 +107,7 @@ const getMigrationCommands = Sequelize => [
           type: Sequelize.TEXT,
           allowNull: true,
         },
-        stateCorpId: {
+        state_corp_id: {
           type: Sequelize.TEXT,
           allowNull: true,
         },
@@ -131,19 +131,19 @@ const getMigrationCommands = Sequelize => [
           type: Sequelize.DATEONLY,
           allowNull: true,
         },
-        legacyData: {
+        legacy_data: {
           type: Sequelize.JSONB,
           allowNull: true,
         },
-        publicFunder: {
+        public_funder: {
           type: Sequelize.BOOLEAN,
           allowNull: true,
         },
-        createdAt: {
+        created_at: {
           type: Sequelize.DATE,
           allowNull: false,
         },
-        updatedAt: {
+        updated_at: {
           type: Sequelize.DATE,
           allowNull: false,
         },
@@ -154,7 +154,7 @@ const getMigrationCommands = Sequelize => [
   {
     fn: 'createTable',
     params: [
-      'OrganizationTags',
+      'organization_tag',
       {
         id: {
           type: Sequelize.INTEGER,
@@ -173,15 +173,15 @@ const getMigrationCommands = Sequelize => [
           type: Sequelize.TEXT,
           allowNull: true,
         },
-        drupalId: {
+        drupal_id: {
           type: Sequelize.INTEGER,
           allowNull: true,
         },
-        createdAt: {
+        created_at: {
           type: Sequelize.DATE,
           allowNull: false,
         },
-        updatedAt: {
+        updated_at: {
           type: Sequelize.DATE,
           allowNull: false,
         },
@@ -192,7 +192,7 @@ const getMigrationCommands = Sequelize => [
   {
     fn: 'createTable',
     params: [
-      'NteeOrganizationTypes',
+      'ntee_organization_type',
       {
         id: {
           type: Sequelize.INTEGER,
@@ -215,15 +215,15 @@ const getMigrationCommands = Sequelize => [
           type: Sequelize.TEXT,
           allowNull: true,
         },
-        drupalId: {
+        drupal_id: {
           type: Sequelize.INTEGER,
           allowNull: true,
         },
-        createdAt: {
+        created_at: {
           type: Sequelize.DATE,
           allowNull: false,
         },
-        updatedAt: {
+        updated_at: {
           type: Sequelize.DATE,
           allowNull: false,
         },
@@ -234,7 +234,7 @@ const getMigrationCommands = Sequelize => [
   {
     fn: 'createTable',
     params: [
-      'Grants',
+      'grant',
       {
         id: {
           type: Sequelize.INTEGER,
@@ -248,7 +248,7 @@ const getMigrationCommands = Sequelize => [
         from: {
           type: Sequelize.INTEGER,
           references: {
-            model: 'Organizations',
+            model: 'organization',
             key: 'id',
           },
           allowNull: false,
@@ -256,16 +256,16 @@ const getMigrationCommands = Sequelize => [
         to: {
           type: Sequelize.INTEGER,
           references: {
-            model: 'Organizations',
+            model: 'organization',
             key: 'id',
           },
           allowNull: false,
         },
-        dateFrom: {
+        date_from: {
           type: Sequelize.DATEONLY,
           allowNull: true,
         },
-        dateTo: {
+        date_to: {
           type: Sequelize.DATEONLY,
           allowNull: true,
         },
@@ -281,23 +281,23 @@ const getMigrationCommands = Sequelize => [
           type: Sequelize.TEXT,
           allowNull: true,
         },
-        internalNotes: {
+        internal_notes: {
           type: Sequelize.TEXT,
           allowNull: true,
         },
-        legacyData: {
+        legacy_data: {
           type: Sequelize.JSONB,
           allowNull: true,
         },
-        federalAwardId: {
+        federal_award_id: {
           type: Sequelize.STRING,
           allowNull: true,
         },
-        createdAt: {
+        created_at: {
           type: Sequelize.DATE,
           allowNull: false,
         },
-        updatedAt: {
+        updated_at: {
           type: Sequelize.DATE,
           allowNull: false,
         },
@@ -308,69 +308,32 @@ const getMigrationCommands = Sequelize => [
   {
     fn: 'createTable',
     params: [
-      'OrganizationNteeOrganizationType',
+      'organization_ntee_organization_type',
       {
-        createdAt: {
+        created_at: {
           type: Sequelize.DATE,
           allowNull: false,
         },
-        updatedAt: {
+        updated_at: {
           type: Sequelize.DATE,
           allowNull: false,
         },
-        OrganizationId: {
+        organization_id: {
           type: Sequelize.INTEGER,
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE',
           references: {
-            model: 'Organizations',
+            model: 'organization',
             key: 'id',
           },
           primaryKey: true,
         },
-        NteeOrganizationTypeId: {
+        ntee_organization_type_id: {
           type: Sequelize.INTEGER,
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE',
           references: {
-            model: 'NteeOrganizationTypes',
-            key: 'id',
-          },
-          primaryKey: true,
-        },
-      },
-      {},
-    ],
-  },
-  {
-    fn: 'createTable',
-    params: [
-      'OrganizationOrganizationTag',
-      {
-        createdAt: {
-          type: Sequelize.DATE,
-          allowNull: false,
-        },
-        updatedAt: {
-          type: Sequelize.DATE,
-          allowNull: false,
-        },
-        OrganizationId: {
-          type: Sequelize.INTEGER,
-          onUpdate: 'CASCADE',
-          onDelete: 'CASCADE',
-          references: {
-            model: 'Organizations',
-            key: 'id',
-          },
-          primaryKey: true,
-        },
-        OrganizationTagId: {
-          type: Sequelize.INTEGER,
-          onUpdate: 'CASCADE',
-          onDelete: 'CASCADE',
-          references: {
-            model: 'OrganizationTags',
+            model: 'ntee_organization_type',
             key: 'id',
           },
           primaryKey: true,
@@ -382,32 +345,32 @@ const getMigrationCommands = Sequelize => [
   {
     fn: 'createTable',
     params: [
-      'GrantNteeGrantType',
+      'organization_organization_tag',
       {
-        createdAt: {
+        created_at: {
           type: Sequelize.DATE,
           allowNull: false,
         },
-        updatedAt: {
+        updated_at: {
           type: Sequelize.DATE,
           allowNull: false,
         },
-        GrantId: {
+        organization_id: {
           type: Sequelize.INTEGER,
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE',
           references: {
-            model: 'Grants',
+            model: 'organization',
             key: 'id',
           },
           primaryKey: true,
         },
-        NteeGrantTypeId: {
+        organization_tag_id: {
           type: Sequelize.INTEGER,
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE',
           references: {
-            model: 'NteeGrantTypes',
+            model: 'organization_tag',
             key: 'id',
           },
           primaryKey: true,
@@ -419,32 +382,69 @@ const getMigrationCommands = Sequelize => [
   {
     fn: 'createTable',
     params: [
-      'GrantGrantTag',
+      'grant_ntee_grant_type',
       {
-        createdAt: {
+        created_at: {
           type: Sequelize.DATE,
           allowNull: false,
         },
-        updatedAt: {
+        updated_at: {
           type: Sequelize.DATE,
           allowNull: false,
         },
-        GrantId: {
+        grant_id: {
           type: Sequelize.INTEGER,
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE',
           references: {
-            model: 'Grants',
+            model: 'grant',
             key: 'id',
           },
           primaryKey: true,
         },
-        GrantTagId: {
+        ntee_grant_type_id: {
           type: Sequelize.INTEGER,
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE',
           references: {
-            model: 'GrantTags',
+            model: 'ntee_grant_type',
+            key: 'id',
+          },
+          primaryKey: true,
+        },
+      },
+      {},
+    ],
+  },
+  {
+    fn: 'createTable',
+    params: [
+      'grant_grant_tag',
+      {
+        created_at: {
+          type: Sequelize.DATE,
+          allowNull: false,
+        },
+        updated_at: {
+          type: Sequelize.DATE,
+          allowNull: false,
+        },
+        grant_id: {
+          type: Sequelize.INTEGER,
+          onUpdate: 'CASCADE',
+          onDelete: 'CASCADE',
+          references: {
+            model: 'grant',
+            key: 'id',
+          },
+          primaryKey: true,
+        },
+        grant_tag_id: {
+          type: Sequelize.INTEGER,
+          onUpdate: 'CASCADE',
+          onDelete: 'CASCADE',
+          references: {
+            model: 'grant_tag',
             key: 'id',
           },
           primaryKey: true,
@@ -458,27 +458,43 @@ const getMigrationCommands = Sequelize => [
 const rollbackCommands = [
   {
     fn: 'dropTable',
-    params: ['GrantTags'],
+    params: ['grant_tag'],
   },
   {
     fn: 'dropTable',
-    params: ['OrganizationTags'],
+    params: ['ntee_grant_type'],
   },
   {
     fn: 'dropTable',
-    params: ['NteeGrantTypes'],
+    params: ['organization'],
   },
   {
     fn: 'dropTable',
-    params: ['NteeOrganizationTypes'],
+    params: ['organization_tag'],
   },
   {
     fn: 'dropTable',
-    params: ['Grants'],
+    params: ['ntee_organization_type'],
   },
   {
     fn: 'dropTable',
-    params: ['Organizations'],
+    params: ['grant'],
+  },
+  {
+    fn: 'dropTable',
+    params: ['organization_ntee_organization_type'],
+  },
+  {
+    fn: 'dropTable',
+    params: ['organization_organization_tag'],
+  },
+  {
+    fn: 'dropTable',
+    params: ['grant_ntee_grant_type'],
+  },
+  {
+    fn: 'dropTable',
+    params: ['grant_grant_tag'],
   },
 ];
 

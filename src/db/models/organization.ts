@@ -88,14 +88,33 @@ export default (sequelize: Sequelize.Sequelize) => {
     name: { type: Sequelize.STRING, allowNull: false },
     ein: { type: Sequelize.STRING, allowNull: true },
     duns: { type: Sequelize.STRING, allowNull: true },
-    stateCorpId: { type: Sequelize.STRING, allowNull: true },
+    stateCorpId: {
+      type: Sequelize.STRING,
+      allowNull: true,
+      field: 'state_corp_id',
+    },
     description: { type: Sequelize.TEXT, allowNull: true },
     address: { type: Sequelize.JSON, allowNull: true },
     links: { type: Sequelize.JSON, allowNull: true },
     founded: { type: Sequelize.DATEONLY, allowNull: true },
     dissolved: { type: Sequelize.DATEONLY, allowNull: true },
-    legacyData: { type: Sequelize.JSON, allowNull: true },
-    publicFunder: { type: Sequelize.BOOLEAN, allowNull: true },
+    legacyData: {
+      type: Sequelize.JSON,
+      allowNull: true,
+      field: 'legacy_data',
+    },
+    publicFunder: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+      field: 'public_funder',
+    },
+  },
+  {
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
+    underscored: true,
+    freezeTableName: true,
+    tableName: 'organization',
   });
 
   Organization.associate = ({
@@ -114,17 +133,23 @@ export default (sequelize: Sequelize.Sequelize) => {
     >;
   }) => {
     Organization.belongsToMany(NteeOrganizationType, {
-      through: 'OrganizationNteeOrganizationType',
+      through: 'organization_ntee_organization_type',
+      as: 'OrganizationNteeOrganizationType',
+      foreignKey: 'organization_id',
+      otherKey: 'ntee_organization_type_id',
     });
     Organization.belongsToMany(OrganizationTag, {
-      through: 'OrganizationOrganizationTag',
+      through: 'organization_organization_tag',
+      as: 'OrganizationOrganizationTag',
+      foreignKey: 'organization_id',
+      otherKey: 'organization_tag_id',
     });
     Organization.hasMany(Grant, {
-      as: 'OrganizationGrantsFunded',
+      as: 'organization_grants_funded',
       foreignKey: 'from',
     });
     Organization.hasMany(Grant, {
-      as: 'OrganizationGrantsReceived',
+      as: 'organization_grants_received',
       foreignKey: 'to',
     });
   };

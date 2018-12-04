@@ -28,6 +28,17 @@ export default (sequelize: Sequelize.Sequelize) =>
       },
       name: { type: Sequelize.STRING, allowNull: false },
       description: { type: Sequelize.STRING, allowNull: true },
-      drupalId: { type: Sequelize.INTEGER, allowNull: true },
+      drupalId: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        field: 'drupal_id',
+      },
+    },
+    {
+      createdAt: 'created_at',
+      updatedAt: 'updated_at',
+      underscored: true,
+      freezeTableName: true,
+      tableName: 'organization_tag',
     }
   );
