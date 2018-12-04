@@ -26,25 +26,28 @@ export default (sequelize: Sequelize.Sequelize) =>
   sequelize.define<
     NteeOrganizationTypeInstance,
     NteeOrganizationTypeAttributes
-  >('NteeOrganizationType', {
-    uuid: {
-      type: Sequelize.UUIDV4,
-      allowNull: true,
-      defaultValue: Sequelize.UUIDV4,
+  >(
+    'NteeOrganizationType',
+    {
+      uuid: {
+        type: Sequelize.UUIDV4,
+        allowNull: true,
+        defaultValue: Sequelize.UUIDV4,
+      },
+      name: { type: Sequelize.STRING, allowNull: false },
+      code: { type: Sequelize.STRING, allowNull: false },
+      description: { type: Sequelize.STRING, allowNull: true },
+      drupalId: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        field: 'drupal_id',
+      },
     },
-    name: { type: Sequelize.STRING, allowNull: false },
-    code: { type: Sequelize.STRING, allowNull: false },
-    description: { type: Sequelize.STRING, allowNull: true },
-    drupalId: {
-      type: Sequelize.INTEGER,
-      allowNull: true,
-      field: 'drupal_id',
-    },
-  },
-  {
-    createdAt: 'created_at',
-    updatedAt: 'updated_at',
-    underscored: true,
-    freezeTableName: true,
-    tableName: 'ntee_organization_type',
-  });
+    {
+      createdAt: 'created_at',
+      updatedAt: 'updated_at',
+      underscored: true,
+      freezeTableName: true,
+      tableName: 'ntee_organization_type',
+    }
+  );

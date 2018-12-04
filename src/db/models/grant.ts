@@ -53,58 +53,61 @@ export type GrantInstance = Sequelize.Instance<GrantAttributes> &
   GrantAttributes;
 
 export default (sequelize: Sequelize.Sequelize) => {
-  let Grant = sequelize.define<GrantInstance, GrantAttributes>('Grant', {
-    uuid: {
-      type: Sequelize.UUIDV4,
-      allowNull: true,
-      defaultValue: Sequelize.UUIDV4,
+  let Grant = sequelize.define<GrantInstance, GrantAttributes>(
+    'Grant',
+    {
+      uuid: {
+        type: Sequelize.UUIDV4,
+        allowNull: true,
+        defaultValue: Sequelize.UUIDV4,
+      },
+      from: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: { model: sequelize.models.organization, key: 'id' },
+      },
+      to: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: { model: sequelize.models.organization, key: 'id' },
+      },
+      dateFrom: {
+        type: Sequelize.DATEONLY,
+        allowNull: true,
+        field: 'date_from',
+      },
+      dateTo: {
+        type: Sequelize.DATEONLY,
+        allowNull: true,
+        field: 'date_to',
+      },
+      amount: { type: Sequelize.BIGINT, allowNull: true },
+      source: { type: Sequelize.TEXT, allowNull: true },
+      description: { type: Sequelize.TEXT, allowNull: true },
+      internalNotes: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+        field: 'internal_notes',
+      },
+      legacyData: {
+        type: Sequelize.JSON,
+        allowNull: true,
+        field: 'legacy_data',
+      },
+      federalAwardId: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        field: 'federal_award_id',
+      },
     },
-    from: {
-      type: Sequelize.INTEGER,
-      allowNull: false,
-      references: { model: sequelize.models.organization, key: 'id' },
-    },
-    to: {
-      type: Sequelize.INTEGER,
-      allowNull: false,
-      references: { model: sequelize.models.organization, key: 'id' },
-    },
-    dateFrom: {
-      type: Sequelize.DATEONLY,
-      allowNull: true,
-      field: 'date_from',
-    },
-    dateTo: {
-      type: Sequelize.DATEONLY,
-      allowNull: true,
-      field: 'date_to',
-    },
-    amount: { type: Sequelize.BIGINT, allowNull: true },
-    source: { type: Sequelize.TEXT, allowNull: true },
-    description: { type: Sequelize.TEXT, allowNull: true },
-    internalNotes: {
-      type: Sequelize.TEXT,
-      allowNull: true,
-      field: 'internal_notes',
-    },
-    legacyData: {
-      type: Sequelize.JSON,
-      allowNull: true,
-      field: 'legacy_data',
-    },
-    federalAwardId: {
-      type: Sequelize.STRING,
-      allowNull: true,
-      field: 'federal_award_id',
-    },
-  },
-  {
-    createdAt: 'created_at',
-    updatedAt: 'updated_at',
-    underscored: true,
-    freezeTableName: true,
-    tableName: 'grant',
-  });
+    {
+      createdAt: 'created_at',
+      updatedAt: 'updated_at',
+      underscored: true,
+      freezeTableName: true,
+      tableName: 'grant',
+    }
+  );
 
   Grant.associate = ({
     NteeGrantType,

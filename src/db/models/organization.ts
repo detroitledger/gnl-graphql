@@ -79,43 +79,46 @@ export default (sequelize: Sequelize.Sequelize) => {
   let Organization = sequelize.define<
     OrganizationInstance,
     OrganizationAttributes
-  >('Organization', {
-    uuid: {
-      type: Sequelize.UUIDV4,
-      allowNull: true,
-      defaultValue: Sequelize.UUIDV4,
+  >(
+    'Organization',
+    {
+      uuid: {
+        type: Sequelize.UUIDV4,
+        allowNull: true,
+        defaultValue: Sequelize.UUIDV4,
+      },
+      name: { type: Sequelize.STRING, allowNull: false },
+      ein: { type: Sequelize.STRING, allowNull: true },
+      duns: { type: Sequelize.STRING, allowNull: true },
+      stateCorpId: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        field: 'state_corp_id',
+      },
+      description: { type: Sequelize.TEXT, allowNull: true },
+      address: { type: Sequelize.JSON, allowNull: true },
+      links: { type: Sequelize.JSON, allowNull: true },
+      founded: { type: Sequelize.DATEONLY, allowNull: true },
+      dissolved: { type: Sequelize.DATEONLY, allowNull: true },
+      legacyData: {
+        type: Sequelize.JSON,
+        allowNull: true,
+        field: 'legacy_data',
+      },
+      publicFunder: {
+        type: Sequelize.BOOLEAN,
+        allowNull: true,
+        field: 'public_funder',
+      },
     },
-    name: { type: Sequelize.STRING, allowNull: false },
-    ein: { type: Sequelize.STRING, allowNull: true },
-    duns: { type: Sequelize.STRING, allowNull: true },
-    stateCorpId: {
-      type: Sequelize.STRING,
-      allowNull: true,
-      field: 'state_corp_id',
-    },
-    description: { type: Sequelize.TEXT, allowNull: true },
-    address: { type: Sequelize.JSON, allowNull: true },
-    links: { type: Sequelize.JSON, allowNull: true },
-    founded: { type: Sequelize.DATEONLY, allowNull: true },
-    dissolved: { type: Sequelize.DATEONLY, allowNull: true },
-    legacyData: {
-      type: Sequelize.JSON,
-      allowNull: true,
-      field: 'legacy_data',
-    },
-    publicFunder: {
-      type: Sequelize.BOOLEAN,
-      allowNull: true,
-      field: 'public_funder',
-    },
-  },
-  {
-    createdAt: 'created_at',
-    updatedAt: 'updated_at',
-    underscored: true,
-    freezeTableName: true,
-    tableName: 'organization',
-  });
+    {
+      createdAt: 'created_at',
+      updatedAt: 'updated_at',
+      underscored: true,
+      freezeTableName: true,
+      tableName: 'organization',
+    }
+  );
 
   Organization.associate = ({
     Grant,
