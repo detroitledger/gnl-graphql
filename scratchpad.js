@@ -15,3 +15,6 @@ await o.getOrganizationGrantsFunded()
 await db.Organization.findAll({ include: [ 'OrganizationGrantsFunded', 'OrganizationGrantsReceived' ] })
 
 await db.Grant.findAll({ include: [ 'GrantOrganizationFunder', 'GrantOrganizationRecipient' ] })
+
+await db.OrganizationMeta.findAll({ include: [{ model: db.Organization }], where: { totalFunded: { [Op.gt]: 6666666 } } })
+

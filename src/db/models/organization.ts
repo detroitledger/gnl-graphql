@@ -8,6 +8,10 @@ import {
   OrganizationTagInstance,
   OrganizationTagAttributes,
 } from './organizationTag';
+import {
+  OrganizationMetaInstance,
+  OrganizationMetaAttributes,
+} from './organizationMeta';
 
 export interface OrganizationAttributes {
   id?: number;
@@ -82,6 +86,14 @@ export default (sequelize: Sequelize.Sequelize) => {
   >(
     'Organization',
     {
+      id: {
+        type: Sequelize.INTEGER,
+        primaryKey: true,
+        references: {
+          model: 'organization_meta',
+          key: 'id',
+        },
+      },
       uuid: {
         type: Sequelize.UUIDV4,
         allowNull: true,
@@ -124,6 +136,7 @@ export default (sequelize: Sequelize.Sequelize) => {
     Grant,
     NteeOrganizationType,
     OrganizationTag,
+    OrganizationMeta,
   }: {
     Grant: Sequelize.Model<GrantInstance, GrantAttributes>;
     NteeOrganizationType: Sequelize.Model<
@@ -134,26 +147,38 @@ export default (sequelize: Sequelize.Sequelize) => {
       OrganizationTagInstance,
       OrganizationTagAttributes
     >;
+    OrganizationMeta: Sequelize.Model<
+      OrganizationMetaInstance,
+      OrganizationMetaAttributes
+    >;
   }) => {
-    Organization.belongsToMany(NteeOrganizationType, {
+    // @ts-ignore
+    Organization.NteeOrganizationTypes = Organization.belongsToMany(NteeOrganizationType, {
       through: 'organization_ntee_organization_type',
       as: 'OrganizationNteeOrganizationType',
       foreignKey: 'organization_id',
       otherKey: 'ntee_organization_type_id',
     });
-    Organization.belongsToMany(OrganizationTag, {
+    // @ts-ignore
+    Organization.OrganizationTags = Organization.belongsToMany(OrganizationTag, {
       through: 'organization_organization_tag',
       as: 'OrganizationOrganizationTag',
       foreignKey: 'organization_id',
       otherKey: 'organization_tag_id',
     });
-    Organization.hasMany(Grant, {
+    // @ts-ignore
+    Organization.GrantsFunded = Organization.hasMany(Grant, {
       as: 'organization_grants_funded',
       foreignKey: 'from',
     });
-    Organization.hasMany(Grant, {
+    // @ts-ignore
+    Organization.GrantsReceived = Organization.hasMany(Grant, {
       as: 'organization_grants_received',
       foreignKey: 'to',
+    });
+    // @ts-ignore
+    Organization.Meta = Organization.hasOne(OrganizationMeta, {
+      foreignKey: 'id',
     });
   };
 

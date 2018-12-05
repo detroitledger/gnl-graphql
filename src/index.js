@@ -2,20 +2,16 @@ import * as config from 'config';
 
 import * as express from 'express';
 
-import * as cors from 'cors';
-
-import { postgraphile } from 'postgraphile';
-
 import { OAuth2Client } from 'google-auth-library';
 
 // add cors to fix 'access-control-allow-origin' error when connecting apollo graphql client app
 const server = express().use('*', cors());
 
-server.use(
-  postgraphile(process.env.DATABASE_URL || 'postgres:///', 'public', {
-    graphiql: true,
-  })
-);
+const typeDefs = `
+  type Query {
+    
+  }
+`;
 
 // Auth
 if (!config.get('google.client_id')) {

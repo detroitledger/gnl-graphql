@@ -10,6 +10,7 @@ import nteeGrantTypeFactory, * as nteeGrantType from './nteeGrantType';
 import nteeOrganizationTypeFactory, * as nteeOrganizationType from './nteeOrganizationType';
 import grantFactory, * as grant from './grant';
 import organizationFactory, * as organization from './organization';
+import organizationMetaFactory, * as organizationMeta from './organizationMeta';
 
 export interface Db {
   sequelize: Sequelize.Sequelize;
@@ -36,6 +37,10 @@ export interface Db {
     organization.OrganizationInstance,
     organization.OrganizationAttributes
   >;
+  OrganizationMeta: Sequelize.Model<
+    organizationMeta.OrganizationMetaInstance,
+    organizationMeta.OrganizationMetaAttributes
+  >;
 }
 
 export default function dbFactory(): Db {
@@ -58,6 +63,7 @@ export default function dbFactory(): Db {
     NteeOrganizationType: nteeOrganizationTypeFactory(sequelize),
     Grant: grantFactory(sequelize),
     Organization: organizationFactory(sequelize),
+    OrganizationMeta: organizationMetaFactory(sequelize),
   };
 
   Object.values(db.sequelize.models).forEach(

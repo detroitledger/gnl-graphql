@@ -121,24 +121,28 @@ export default (sequelize: Sequelize.Sequelize) => {
     GrantTag: Sequelize.Model<GrantTagInstance, GrantTagAttributes>;
     Organization: Sequelize.Model<OrganizationInstance, OrganizationAttributes>;
   }) => {
-    Grant.belongsToMany(GrantTag, {
+    // @ts-ignore
+    Grant.GrantTags = Grant.belongsToMany(GrantTag, {
       through: 'grant_grant_tag',
       as: 'GrantGrantTag',
       foreignKey: 'grant_id',
       otherKey: 'grant_tag_id',
     });
-    Grant.belongsToMany(NteeGrantType, {
+    // @ts-ignore
+    Grant.NteeGrantTypes = Grant.belongsToMany(NteeGrantType, {
       through: 'grant_ntee_grant_type',
       as: 'GrantNteeGrantType',
       foreignKey: 'grant_id',
       otherKey: 'ntee_grant_type_id',
     });
-    Grant.belongsTo(Organization, {
+    // @ts-ignore
+    Grant.Funder = Grant.belongsTo(Organization, {
       as: 'grant_organization_funder',
       foreignKey: 'from',
       targetKey: 'id',
     });
-    Grant.belongsTo(Organization, {
+    // @ts-ignore
+    Grant.Recipient = Grant.belongsTo(Organization, {
       as: 'grant_organization_recipient',
       foreignKey: 'to',
       targetKey: 'id',
