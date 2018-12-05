@@ -1,9 +1,6 @@
 import * as Sequelize from 'sequelize';
 
-import {
-  OrganizationInstance,
-  OrganizationAttributes,
-} from './organization';
+import { OrganizationInstance, OrganizationAttributes } from './organization';
 
 export interface OrganizationMetaAttributes {
   id?: number;
@@ -13,7 +10,9 @@ export interface OrganizationMetaAttributes {
   grantdatesEnd: Date;
 }
 
-export type OrganizationMetaInstance = Sequelize.Instance<OrganizationMetaAttributes> &
+export type OrganizationMetaInstance = Sequelize.Instance<
+  OrganizationMetaAttributes
+> &
   OrganizationMetaAttributes;
 
 export default (sequelize: Sequelize.Sequelize) => {
@@ -62,17 +61,13 @@ export default (sequelize: Sequelize.Sequelize) => {
   OrganizationMeta.associate = ({
     Organization,
   }: {
-    Organization: Sequelize.Model<
-      OrganizationInstance,
-      OrganizationAttributes
-    >;
+    Organization: Sequelize.Model<OrganizationInstance, OrganizationAttributes>;
   }) => {
     // @ts-ignore
     OrganizationMeta.Organization = OrganizationMeta.hasOne(Organization, {
       foreignKey: 'id',
     });
   };
-
 
   return OrganizationMeta;
 };

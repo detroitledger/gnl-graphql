@@ -153,19 +153,25 @@ export default (sequelize: Sequelize.Sequelize) => {
     >;
   }) => {
     // @ts-ignore
-    Organization.NteeOrganizationTypes = Organization.belongsToMany(NteeOrganizationType, {
-      through: 'organization_ntee_organization_type',
-      as: 'OrganizationNteeOrganizationType',
-      foreignKey: 'organization_id',
-      otherKey: 'ntee_organization_type_id',
-    });
+    Organization.NteeOrganizationTypes = Organization.belongsToMany(
+      NteeOrganizationType,
+      {
+        through: 'organization_ntee_organization_type',
+        as: 'OrganizationNteeOrganizationType',
+        foreignKey: 'organization_id',
+        otherKey: 'ntee_organization_type_id',
+      }
+    );
     // @ts-ignore
-    Organization.OrganizationTags = Organization.belongsToMany(OrganizationTag, {
-      through: 'organization_organization_tag',
-      as: 'OrganizationOrganizationTag',
-      foreignKey: 'organization_id',
-      otherKey: 'organization_tag_id',
-    });
+    Organization.OrganizationTags = Organization.belongsToMany(
+      OrganizationTag,
+      {
+        through: 'organization_organization_tag',
+        as: 'OrganizationOrganizationTag',
+        foreignKey: 'organization_id',
+        otherKey: 'organization_tag_id',
+      }
+    );
     // @ts-ignore
     Organization.GrantsFunded = Organization.hasMany(Grant, {
       as: 'organization_grants_funded',

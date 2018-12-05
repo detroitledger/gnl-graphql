@@ -29,6 +29,8 @@ WITH DATA;
   },
 
   down: (queryInterface, Sequelize) => {
-    return queryInterface.sequelize.query(`DROP MATERIALIZED VIEW organization_meta`);
+    return queryInterface.sequelize.query(
+      `DROP MATERIALIZED VIEW organization_meta`
+    );
   },
 };
