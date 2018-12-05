@@ -8,10 +8,6 @@ import {
   OrganizationTagInstance,
   OrganizationTagAttributes,
 } from './organizationTag';
-import {
-  OrganizationMetaInstance,
-  OrganizationMetaAttributes,
-} from './organizationMeta';
 
 export interface OrganizationAttributes {
   id?: number;
@@ -89,13 +85,9 @@ export default (sequelize: Sequelize.Sequelize) => {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
-        references: {
-          model: 'organization_meta',
-          key: 'id',
-        },
       },
       uuid: {
-        type: Sequelize.UUIDV4,
+        type: Sequelize.UUID,
         allowNull: true,
         defaultValue: Sequelize.UUIDV4,
       },
@@ -136,7 +128,6 @@ export default (sequelize: Sequelize.Sequelize) => {
     Grant,
     NteeOrganizationType,
     OrganizationTag,
-    OrganizationMeta,
   }: {
     Grant: Sequelize.Model<GrantInstance, GrantAttributes>;
     NteeOrganizationType: Sequelize.Model<
@@ -146,10 +137,6 @@ export default (sequelize: Sequelize.Sequelize) => {
     OrganizationTag: Sequelize.Model<
       OrganizationTagInstance,
       OrganizationTagAttributes
-    >;
-    OrganizationMeta: Sequelize.Model<
-      OrganizationMetaInstance,
-      OrganizationMetaAttributes
     >;
   }) => {
     // @ts-ignore
@@ -181,10 +168,6 @@ export default (sequelize: Sequelize.Sequelize) => {
     Organization.GrantsReceived = Organization.hasMany(Grant, {
       as: 'organization_grants_received',
       foreignKey: 'to',
-    });
-    // @ts-ignore
-    Organization.Meta = Organization.hasOne(OrganizationMeta, {
-      foreignKey: 'id',
     });
   };
 

@@ -30,7 +30,7 @@ export default (sequelize: Sequelize.Sequelize) =>
     'NteeOrganizationType',
     {
       uuid: {
-        type: Sequelize.UUIDV4,
+        type: Sequelize.UUID,
         allowNull: true,
         defaultValue: Sequelize.UUIDV4,
       },

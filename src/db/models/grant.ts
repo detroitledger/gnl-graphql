@@ -57,7 +57,7 @@ export default (sequelize: Sequelize.Sequelize) => {
     'Grant',
     {
       uuid: {
-        type: Sequelize.UUIDV4,
+        type: Sequelize.UUID,
         allowNull: true,
         defaultValue: Sequelize.UUIDV4,
       },

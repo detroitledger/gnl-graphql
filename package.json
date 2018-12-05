@@ -12,12 +12,15 @@
   "dependencies": {
     "bunyan": "^1.8.12",
     "config": "^2.0.1",
-    "cors": "^2.8.1",
+    "dataloader-sequelize": "1.7.6",
     "express": "^4.14.0",
     "google-auth-library": "1.6.1",
+    "graphql": "14.0.2",
+    "graphql-relay": "0.5.5",
+    "graphql-sequelize": "9.2.0",
+    "graphql-yoga": "1.16.7",
     "lodash": "^4.17.4",
     "pg": "^6.1.0",
-    "postgraphile": "4.0.1",
     "sequelize": "4.38.0",
     "sqlite3": "^4.0.2",
     "toml": "^2.3.3"

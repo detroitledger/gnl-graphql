@@ -24,7 +24,7 @@ export default (sequelize: Sequelize.Sequelize) =>
     'NteeGrantType',
     {
       uuid: {
-        type: Sequelize.UUIDV4,
+        type: Sequelize.UUID,
         allowNull: true,
         defaultValue: Sequelize.UUIDV4,
       },

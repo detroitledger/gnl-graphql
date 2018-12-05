@@ -7,6 +7,7 @@ CREATE MATERIALIZED VIEW public.organization_meta
 TABLESPACE pg_default
 AS
  SELECT o.id,
+    o.uuid,
     ( SELECT sum(g.amount) AS sum
            FROM "grant" g
           WHERE g."to" = o.id

@@ -4,6 +4,7 @@ import { OrganizationInstance, OrganizationAttributes } from './organization';
 
 export interface OrganizationMetaAttributes {
   id?: number;
+  uuid: string;
   totalReceived: number;
   totalFunded: number;
   grantdatesStart: Date;
@@ -25,10 +26,9 @@ export default (sequelize: Sequelize.Sequelize) => {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
-        references: {
-          model: 'organization',
-          key: 'id',
-        },
+      },
+      uuid: {
+        type: Sequelize.UUID,
       },
       totalReceived: {
         type: Sequelize.BIGINT,
