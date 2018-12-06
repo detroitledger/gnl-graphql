@@ -30,88 +30,29 @@ import dbFactory, * as models from './db/models';
 // Initalize database
 const db = dbFactory() as models.Db;
 
-// Define GraphQL types
-const typeDefs = `
-  type Query {
-    organization(uuid: ID!): Organization
-    organizations(limit: Int, offset: Int): [Organization]
-    organizationMeta(uuid: ID!): OrganizationMeta
-    organizationMetas(limit: Int, offset: Int): [OrganizationMeta]
-    grant(uuid: ID!): Grant
-    grants(limit: Int): [Grant]
-  }
-
-  type Organization {
-    uuid: ID!
-    name: String
-    description: String
-    grantsFunded: [Grant]
-    grantsReceived: [Grant]
-  }
-
-  type OrganizationMeta {
-    uuid: ID!
-    totalReceived: Int
-    totalFunded: Int
-    organization: Organization
-  }
-
-  type Grant {
-    uuid: ID!
-    from: Organization
-    to: Organization
-    amount: Int
-    source: String
-  }
-`;
-
-const resolvers = {
-  Query: {
-    organization: resolver(db.Organization),
-    organizations: resolver(db.Organization),
-    organizationMeta: resolver(db.OrganizationMeta),
-    organizationMetas: resolver(db.OrganizationMeta),
-    grant: resolver(db.Grant),
-    grants: resolver(db.Grant),
-  },
-  Organization: {
-    // @ts-ignore
-    grantsFunded: resolver(db.Organization.GrantsFunded),
-    // @ts-ignore
-    grantsReceived: resolver(db.Organization.GrantsReceived),
-  },
-  OrganizationMeta: {
-    // @ts-ignore
-    organization: resolver(db.OrganizationMeta.Organization),
-  },
-  Grant: {
-    // @ts-ignore
-    from: resolver(db.Grant.Funder),
-    // @ts-ignore
-    to: resolver(db.Grant.Recipient),
-  },
-};
-
 resolver.contextToOptions = { [EXPECTED_OPTIONS_KEY]: EXPECTED_OPTIONS_KEY };
+
+const shallowOrganizationType = new GraphQLObjectType({
+  name: 'ShallowOrganization',
+  description: 'An organization, without grants funded or received',
+  fields: attributeFields(db.Organization),
+});
 
 const grantType = new GraphQLObjectType({
   name: 'Grant',
   description: 'A grant, duh',
   fields: {
     ...attributeFields(db.Grant),
-    /*
-    todo: block scoping
     from: {
-      type: organizationType,
+      type: shallowOrganizationType,
       // @ts-ignore
       resolve: resolver(db.Grant.Funder),
     },
     to: {
-      type: organizationType,
+      type: shallowOrganizationType,
       // @ts-ignore
       resolve: resolver(db.Grant.Recipient),
     },
-    */
   },
 });
 
