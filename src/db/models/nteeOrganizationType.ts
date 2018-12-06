@@ -2,6 +2,8 @@ import * as Sequelize from 'sequelize';
 
 import { AbstractDrupalTagAttributes } from './abstractDrupalTag';
 
+import { OrganizationInstance, OrganizationAttributes } from './organization';
+
 // https://nccs.urban.org/classification/national-taxonomy-exempt-entities
 // https://nccs.urban.org/sites/all/nccs-archive/kbfiles/324/NTEE%20Two%20Page_2005.DOC
 // http://www.guidestar.org/rxg/help/ntee-codes.aspx
@@ -22,8 +24,8 @@ export type NteeOrganizationTypeInstance = Sequelize.Instance<
 > &
   NteeOrganizationTypeAttributes;
 
-export default (sequelize: Sequelize.Sequelize) =>
-  sequelize.define<
+export default (sequelize: Sequelize.Sequelize) => {
+  let NteeOrganizationType = sequelize.define<
     NteeOrganizationTypeInstance,
     NteeOrganizationTypeAttributes
   >(
@@ -51,3 +53,23 @@ export default (sequelize: Sequelize.Sequelize) =>
       tableName: 'ntee_organization_type',
     }
   );
+
+  NteeOrganizationType.associate = ({
+    Organization,
+  }: {
+    Organization: Sequelize.Model<OrganizationInstance, OrganizationAttributes>;
+  }) => {
+    // @ts-ignore
+    NteeOrganizationType.Organizations = NteeOrganizationType.belongsToMany(
+      Organization,
+      {
+        through: 'organization_ntee_organization_type',
+        as: 'OrganizationNteeOrganizationType',
+        foreignKey: 'ntee_organization_type_id',
+        otherKey: 'organization_id',
+      }
+    );
+  };
+
+  return NteeOrganizationType;
+};

@@ -38,6 +38,30 @@ const shallowOrganizationType = new GraphQLObjectType({
   fields: attributeFields(db.Organization, { exclude: ['id'] }),
 });
 
+const grantTagType = new GraphQLObjectType({
+  name: 'GrantTag',
+  description: 'Tag associated with a grant',
+  fields: attributeFields(db.GrantTag, { exclude: ['id'] }),
+});
+
+const nteeGrantTypeType = new GraphQLObjectType({
+  name: 'NteeGrantType',
+  description: 'NTEE classification of a grant',
+  fields: attributeFields(db.NteeGrantType, { exclude: ['id'] }),
+});
+
+const organizationTagType = new GraphQLObjectType({
+  name: 'OrganizationTag',
+  description: 'Tag associated with an organization',
+  fields: attributeFields(db.OrganizationTag, { exclude: ['id'] }),
+});
+
+const nteeOrganizationTypeType = new GraphQLObjectType({
+  name: 'NteeOrganizationType',
+  description: 'NTEE classification of an organization',
+  fields: attributeFields(db.NteeOrganizationType, { exclude: ['id'] }),
+});
+
 const grantType = new GraphQLObjectType({
   name: 'Grant',
   description: 'A grant, duh',
@@ -52,6 +76,16 @@ const grantType = new GraphQLObjectType({
       type: shallowOrganizationType,
       // @ts-ignore
       resolve: resolver(db.Grant.Recipient),
+    },
+    nteeGrantTypes: {
+      type: new GraphQLList(nteeGrantTypeType),
+      // @ts-ignore
+      resolve: resolver(db.Grant.NteeGrantTypes),
+    },
+    grantTags: {
+      type: new GraphQLList(grantTagType),
+      // @ts-ignore
+      resolve: resolver(db.Grant.GrantTags),
     },
   },
 });
@@ -81,6 +115,16 @@ const organizationType = new GraphQLObjectType({
       type: new GraphQLList(form990Type),
       // @ts-ignore
       resolve: resolver(db.Organization.Forms990),
+    },
+    nteeOrganizationTypes: {
+      type: new GraphQLList(nteeOrganizationTypeType),
+      // @ts-ignore
+      resolve: resolver(db.Organization.NteeOrganizationTypes),
+    },
+    organizationTags: {
+      type: new GraphQLList(organizationTagType),
+      // @ts-ignore
+      resolve: resolver(db.Organization.OrganizationTags),
     },
   },
 });

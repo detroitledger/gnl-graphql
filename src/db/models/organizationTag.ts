@@ -2,6 +2,8 @@ import * as Sequelize from 'sequelize';
 
 import { AbstractDrupalTagAttributes } from './abstractDrupalTag';
 
+import { OrganizationInstance, OrganizationAttributes } from './organization';
+
 export interface OrganizationTagAttributes extends AbstractDrupalTagAttributes {
   id?: number;
   uuid?: string;
@@ -17,8 +19,11 @@ export type OrganizationTagInstance = Sequelize.Instance<
 > &
   OrganizationTagAttributes;
 
-export default (sequelize: Sequelize.Sequelize) =>
-  sequelize.define<OrganizationTagInstance, OrganizationTagAttributes>(
+export default (sequelize: Sequelize.Sequelize) => {
+  let OrganizationTag = sequelize.define<
+    OrganizationTagInstance,
+    OrganizationTagAttributes
+  >(
     'OrganizationTag',
     {
       uuid: {
@@ -42,3 +47,23 @@ export default (sequelize: Sequelize.Sequelize) =>
       tableName: 'organization_tag',
     }
   );
+
+  OrganizationTag.associate = ({
+    Organization,
+  }: {
+    Organization: Sequelize.Model<OrganizationInstance, OrganizationAttributes>;
+  }) => {
+    // @ts-ignore
+    OrganizationTag.Organizations = OrganizationTag.belongsToMany(
+      Organization,
+      {
+        through: 'organization_organization_tag',
+        as: 'OrganizationOrganizationTag',
+        foreignKey: 'organization_tag_id',
+        otherKey: 'organization_id',
+      }
+    );
+  };
+
+  return OrganizationTag;
+};
