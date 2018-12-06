@@ -8,6 +8,7 @@ import {
   OrganizationTagInstance,
   OrganizationTagAttributes,
 } from './organizationTag';
+import { Form990Instance, Form990Attributes } from './form990';
 
 export interface OrganizationAttributes {
   id?: number;
@@ -128,6 +129,7 @@ export default (sequelize: Sequelize.Sequelize) => {
     Grant,
     NteeOrganizationType,
     OrganizationTag,
+    Form990,
   }: {
     Grant: Sequelize.Model<GrantInstance, GrantAttributes>;
     NteeOrganizationType: Sequelize.Model<
@@ -138,6 +140,7 @@ export default (sequelize: Sequelize.Sequelize) => {
       OrganizationTagInstance,
       OrganizationTagAttributes
     >;
+    Form990: Sequelize.Model<Form990Instance, Form990Attributes>;
   }) => {
     // @ts-ignore
     Organization.NteeOrganizationTypes = Organization.belongsToMany(
@@ -168,6 +171,11 @@ export default (sequelize: Sequelize.Sequelize) => {
     Organization.GrantsReceived = Organization.hasMany(Grant, {
       as: 'organization_grants_received',
       foreignKey: 'to',
+    });
+    // @ts-ignore
+    Organization.Forms990 = Organization.hasMany(Form990, {
+      sourceKey: 'ein',
+      foreignKey: 'ein',
     });
   };
 

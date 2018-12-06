@@ -56,6 +56,12 @@ const grantType = new GraphQLObjectType({
   },
 });
 
+const form990Type = new GraphQLObjectType({
+  name: 'Form990',
+  description: 'One row from the IRS combined table',
+  fields: attributeFields(db.Form990),
+});
+
 const organizationType = new GraphQLObjectType({
   name: 'Organization',
   description: 'An organization, duh',
@@ -70,6 +76,11 @@ const organizationType = new GraphQLObjectType({
       type: new GraphQLList(grantType),
       // @ts-ignore
       resolve: resolver(db.Organization.GrantsReceived),
+    },
+    forms990: {
+      type: new GraphQLList(form990Type),
+      // @ts-ignore
+      resolve: resolver(db.Organization.Forms990),
     },
   },
 });
