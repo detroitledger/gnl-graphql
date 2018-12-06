@@ -35,14 +35,14 @@ resolver.contextToOptions = { [EXPECTED_OPTIONS_KEY]: EXPECTED_OPTIONS_KEY };
 const shallowOrganizationType = new GraphQLObjectType({
   name: 'ShallowOrganization',
   description: 'An organization, without grants funded or received',
-  fields: attributeFields(db.Organization),
+  fields: attributeFields(db.Organization, { exclude: ['id'] }),
 });
 
 const grantType = new GraphQLObjectType({
   name: 'Grant',
   description: 'A grant, duh',
   fields: {
-    ...attributeFields(db.Grant),
+    ...attributeFields(db.Grant, { exclude: ['id'] }),
     from: {
       type: shallowOrganizationType,
       // @ts-ignore
@@ -66,7 +66,7 @@ const organizationType = new GraphQLObjectType({
   name: 'Organization',
   description: 'An organization, duh',
   fields: {
-    ...attributeFields(db.Organization),
+    ...attributeFields(db.Organization, { exclude: ['id'] }),
     grantsFunded: {
       type: new GraphQLList(grantType),
       // @ts-ignore
@@ -89,7 +89,7 @@ const organizationMetaType = new GraphQLObjectType({
   name: 'OrganizationMeta',
   description: 'Extra org info',
   fields: {
-    ...attributeFields(db.OrganizationMeta),
+    ...attributeFields(db.OrganizationMeta, { exclude: ['id'] }),
     organization: {
       type: organizationType,
       // @ts-ignore
@@ -105,7 +105,10 @@ const server = new GraphQLServer({
       fields: {
         organization: {
           type: organizationType,
-          args: defaultArgs(db.Organization),
+          args: defaultArgs({
+            ...db.Organization,
+            primaryKeyAttributes: ['uuid'],
+          }),
           resolve: resolver(db.Organization),
         },
         organizations: {
@@ -123,6 +126,22 @@ const server = new GraphQLServer({
             ...defaultArgs(db.OrganizationMeta),
           },
           resolve: resolver(db.OrganizationMeta),
+        },
+        grant: {
+          type: grantType,
+          args: defaultArgs({
+            ...db.Grant,
+            primaryKeyAttributes: ['uuid'],
+          }),
+          resolve: resolver(db.Grant),
+        },
+        grants: {
+          type: new GraphQLList(grantType),
+          args: {
+            ...defaultListArgs(),
+            ...defaultArgs(db.Grant),
+          },
+          resolve: resolver(db.Grant),
         },
       },
     }),
