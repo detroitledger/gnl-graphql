@@ -19,9 +19,10 @@ import {
   GraphQLObjectType,
   GraphQLString,
   GraphQLInt,
-  GraphQLNonNull,
   GraphQLList,
 } from 'graphql';
+
+import * as GraphQLBigInt from 'graphql-bigint';
 
 import { logger } from './logger';
 
@@ -147,6 +148,30 @@ const server = new GraphQLServer({
     query: new GraphQLObjectType({
       name: 'RootQueryType',
       fields: {
+        stats: {
+          type: new GraphQLObjectType({
+            name: 'Stats',
+            description: 'gnl stats',
+            fields: {
+              total_num_grants: { type: GraphQLInt },
+              total_num_orgs: { type: GraphQLInt },
+              total_grants_dollars: { type: GraphQLBigInt },
+            },
+          }),
+          resolve: async () => {
+            const results = await Promise.all(
+              [
+                'SELECT COUNT(id) AS total_num_grants FROM "grant"',
+                'SELECT COUNT(id) AS total_num_orgs FROM organization',
+                'SELECT SUM(amount) AS total_grants_dollars FROM "grant"',
+              ].map(q =>
+                db.sequelize.query(q, { type: db.Sequelize.QueryTypes.SELECT })
+              )
+            );
+
+            return results.reduce((acc, cur) => ({ ...acc, ...cur[0] }), {});
+          },
+        },
         organization: {
           type: organizationType,
           args: defaultArgs({
