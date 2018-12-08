@@ -14,27 +14,22 @@ Built using:
 
 We use the `config` package to manage our configurations. See `config/default.toml`.
 
+Due to the idiosyncratic nature of its configuration, if you want to run the `sequelize`
+command-line utility (for example, to run a migration), you need to duplicate configuration
+settings from the `config` system into `src/db/config.json`.
+
 ## Set up databases
 
-Create a postgres db that matches the info in `src/db/config.json`.
-Maybe start with a dump of the current latest imports.
+Create a postgres db that matches the info in `config/default.toml` or alternatively set up your
+own configuration overrides in `config/local.toml`.
 
-Initalize the database by running `yarn run sequelize db:migrate`
-
-## Importing legacy data
-
-Make a directory for the exports and copy them over:
+Use the latest seed db from [here](https://drive.google.com/open?id=1QdYUUWB7CEtRknPqL5Ku_89PvKEYKLIn)
 
 ```
-mkdir -p ~/gnl/data.detroitledger.org/profiles/gnl_profile/exporters
+zcat snake_cased.sql.gz | psql gnl
 ```
 
-Start from scratch & run an import:
-
-```
-rm devdb.sqlite
-( yarn run sequelize db:migrate && yarn tsc && node dist/scripts/tagImporter.js && node dist/scripts/orgImporter.js && node dist/scripts/grantImporter.js ) | yarn bunyan -l ERROR
-```
+or on OS X, `gzcat snake_cased.sql.gz | psql gnl`
 
 ## Use
 `yarn tsc && PORT=3000 node dist/index.js`

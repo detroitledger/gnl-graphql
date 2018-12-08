@@ -8,9 +8,11 @@ out = 'stdout'
 
 [database]
 operatorsAliases = false
-dialect = 'sqlite'
-storage = './devdb.sqlite'
-database = 'gnl_graphql_dev'
+dialect = 'postgres'
+host = 'localhost'
+port = 5432
+database = 'gnl'
+user = 'gnl'
 
 [auth]
 allowed_emails = 'e@mail.com bee@mail.com'
