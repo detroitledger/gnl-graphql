@@ -8,6 +8,7 @@ Built using:
 * https://github.com/mickhansen/dataloader-sequelize
 
 ## Install
+
 `yarn install`
 
 ## Config
@@ -30,6 +31,14 @@ zcat snake_cased.sql.gz | psql gnl
 ```
 
 or on OS X, `gzcat snake_cased.sql.gz | psql gnl`
+
+Create a GNL user:
+
+```
+CREATE USER gnl;
+GRANT CONNECT ON DATABASE gnl TO gnl;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO gnl;
+```
 
 ## Use
 `yarn tsc && PORT=3000 node dist/index.js`
