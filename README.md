@@ -1,75 +1,73 @@
 # gnl-graphql
 graphql server for detroitledger.org
 
-Reference docs: http://dev.apollodata.com/tools/
+Built using:
+
+* https://github.com/prisma/graphql-yoga
+* https://github.com/mickhansen/graphql-sequelize
+* https://github.com/mickhansen/dataloader-sequelize
 
 ## Install
-`npm install`
+`yarn install`
 
 ## Config
 
-Copy `sample.env` to `.env`, set up connection
+We use the `config` package to manage our configurations. See `config/default.toml`.
+
+Due to the idiosyncratic nature of its configuration, if you want to run the `sequelize`
+command-line utility (for example, to run a migration), you need to duplicate configuration
+settings from the `config` system into `src/db/config.json`.
+
+## Set up databases
+
+Create a postgres db that matches the info in `config/default.toml` or alternatively set up your
+own configuration overrides in `config/local.toml`.
+
+Use the latest seed db from [here](https://drive.google.com/open?id=1QdYUUWB7CEtRknPqL5Ku_89PvKEYKLIn)
+
+```
+zcat snake_cased.sql.gz | psql gnl
+```
+
+or on OS X, `gzcat snake_cased.sql.gz | psql gnl`
 
 ## Use
-`npm start`
+`yarn tsc && PORT=3000 node dist/index.js`
 
-Got to http://localhost:8080/graphiql to use GraphiQL query interface
+Got to http://localhost:3000 for a [playground](https://github.com/prisma/graphql-playground)
 
 Sample query:
 ```graphql
 {
-  organization(ein: "380808800") {
-    ein
-    program_service_revenue
-    forms990(limit: 3, offset: 3) {
-      id
-      ein
-      tax_period
-      total_assets
-    }
-    ledgerOrganizations {
-      ...orgFields
-    }
-    ledgerGrants(limit: 3, offset: 3) {
-      id
-      ein
-      amount
-      start
-      end
-      funder {
-        ...orgFields
-      }
-      recipient {
-        ...orgFields
-      }
-    }
-    ledgerNewsArticles {
-      id
-      link
-      date
-      desc
-      organization {
-        ...orgFields
-      }
-    }
-  }
-}
-
-fragment orgFields on LedgerOrganization {
-  name
-  description
-  id
-  ein
-  stateCorpId
-  funded
-  received
-  start
-  end
-  ntees {
-    id
-    name
-  }
+	query {
+		organization(uuid: "03d9d71f-add5-4fe7-8701-67331a4dc795") {
+			name
+			uuid
+			grantsFunded {
+				uuid
+				dateTo
+				dateFrom
+				to {
+					name
+					uuid
+				}
+				amount
+				description
+			}
+			forms990 {
+				start_year
+				end_year
+				irs_year
+				total_assets
+				total_revenue
+				total_expenses
+				total_liabilities
+			}
+		}
+	}
 }
 ```
+
 ## Connecting to a client
+
 Tinkered with connecting this server to a simple Apollo/React client app here: https://github.com/jessicamcinchak/frontpage-react-app/tree/ledger-client

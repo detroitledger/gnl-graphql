@@ -1,0 +1,23 @@
+{
+  "development": {
+    "database": "gnl",
+    "host": "127.0.0.1",
+    "dialect": "postgres",
+    "username": "gnl",
+    "password": null
+  },
+  "test": {
+    "username": "root",
+    "password": null,
+    "database": "gnl_test",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "root",
+    "password": null,
+    "database": "gnl_production",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  }
+}

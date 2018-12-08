@@ -1,0 +1,18 @@
+port = 8081
+
+name = 'gnl-graphql'
+
+[[log]]
+level = 'debug'
+out = 'stdout'
+
+[database]
+operatorsAliases = false
+dialect = 'postgres'
+host = 'localhost'
+port = 5432
+database = 'gnl'
+user = 'gnl'
+
+[auth]
+allowed_emails = 'e@mail.com bee@mail.com'
