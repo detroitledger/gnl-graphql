@@ -10,15 +10,24 @@ Built using:
 ## Install
 `yarn install`
 
+## Config
+
+We use the `config` package to manage our configurations. See `config/default.toml`.
+
 ## Set up databases
 
-Create a postgres db; maybe strat with a dump of the current latest imports.
+Create a postgres db that matches the info in `src/db/config.json`.
+Maybe start with a dump of the current latest imports.
 
 Initalize the database by running `yarn run sequelize db:migrate`
 
 ## Importing legacy data
 
-TODO: real docs
+Make a directory for the exports and copy them over:
+
+```
+mkdir -p ~/gnl/data.detroitledger.org/profiles/gnl_profile/exporters
+```
 
 Start from scratch & run an import:
 
@@ -26,10 +35,6 @@ Start from scratch & run an import:
 rm devdb.sqlite
 ( yarn run sequelize db:migrate && yarn tsc && node dist/scripts/tagImporter.js && node dist/scripts/orgImporter.js && node dist/scripts/grantImporter.js ) | yarn bunyan -l ERROR
 ```
-
-## Config
-
-We use the `config` package to manage our configurations. See `config/default.toml`.
 
 ## Use
 `yarn tsc && PORT=3000 node dist/index.js`
