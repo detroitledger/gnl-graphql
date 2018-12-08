@@ -51,7 +51,7 @@ export default function dbFactory(): Db {
 
   logger.info('setting up database with dialect %s', dbConfig.dialect);
 
-  const sequelize = new Sequelize(config.get('database'));
+  const sequelize = new Sequelize(process.env.DATABASE_URL || config.get('database'));
 
   const db: Db = {
     sequelize,
