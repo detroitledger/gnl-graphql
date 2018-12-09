@@ -20,10 +20,7 @@ export interface Db {
     grantTag.GrantTagInstance,
     grantTag.GrantTagAttributes
   >;
-  News: Sequelize.Model<
-    news.NewsInstance,
-    news.NewsAttributes
-  >;
+  News: Sequelize.Model<news.NewsInstance, news.NewsAttributes>;
   NteeGrantType: Sequelize.Model<
     nteeGrantType.NteeGrantTypeInstance,
     nteeGrantType.NteeGrantTypeAttributes
@@ -41,13 +38,11 @@ export interface Db {
     organizationMeta.OrganizationMetaAttributes
   >;
   OrganizationTag: Sequelize.Model<
-  organizationTag.OrganizationTagInstance,
-  organizationTag.OrganizationTagAttributes
+        organizationTag.OrganizationTagInstance,
+        organizationTag.OrganizationTagAttributes
   >;
   sequelize: Sequelize.Sequelize;
-  Sequelize: Sequelize.SequelizeStatic;
-
-}
+  Sequelize: Sequelize.SequelizeStatic;}
 
 export default function dbFactory(): Db {
   const logger = baseLogger.child({ module: 'database' });
@@ -59,19 +54,7 @@ export default function dbFactory(): Db {
 
   const sequelize = new Sequelize(process.env.DATABASE_URL || config.get('database'));
 
-  const db: Db = {
-    Form990: form990Factory(sequelize),
-    Grant: grantFactory(sequelize),
-    GrantTag: grantTagFactory(sequelize),
-    News: newsFactory(sequelize),
-    NteeGrantType: nteeGrantTypeFactory(sequelize),
-    NteeOrganizationType: nteeOrganizationTypeFactory(sequelize),
-    Organization: organizationFactory(sequelize),
-    OrganizationMeta: organizationMetaFactory(sequelize),
-    OrganizationTag: organizationTagFactory(sequelize),
-    sequelize,
-    Sequelize,
-  };
+  const db: Db = { Form990: form990Factory(sequelize), Grant: grantFactory(sequelize), GrantTag: grantTagFactory(sequelize), News: newsFactory(sequelize), NteeGrantType: nteeGrantTypeFactory(sequelize), NteeOrganizationType: nteeOrganizationTypeFactory(sequelize), Organization: organizationFactory(sequelize), OrganizationMeta: organizationMetaFactory(sequelize), OrganizationTag: organizationTagFactory(sequelize), sequelize, Sequelize };
 
   Object.values(db.sequelize.models).forEach(
     (model: Sequelize.Model<any, any>) => {

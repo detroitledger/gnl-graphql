@@ -2,9 +2,7 @@ import * as Sequelize from 'sequelize';
 
 import { NewsAttributes } from '../db/models/news';
 
-import {
-  makeDateonly,
-} from './importHelpers';
+import { makeDateonly } from './importHelpers';
 
 import dbFactory, * as models from '../db/models';
 
@@ -13,23 +11,10 @@ const db = dbFactory() as models.Db;
 const news = require(`../../tmp/news.json`).newss;
 
 const importNews = async drupalNews => {
-  console.log("Trying", drupalNews)
-  const org = await db.Organization.find({
-    where: {
-      legacyData: { drupalId: parseInt(drupalNews.field_news_org.target_id) },
-    },
-  });
-
-  if (org == null) {
-    console.error('no org??');
-    console.log({ drupalNews });
-    process.exit(1);
-  }
+  console.log('Trying', drupalNews);
 
   const cleansed = {
     uuid: drupalNews.uuid,
-    org: org ? org.id : 'ts is confused',
-
     title: drupalNews.title,
     description: drupalNews.notes,
     link: drupalNews.notes,
@@ -39,6 +24,20 @@ const importNews = async drupalNews => {
   let news;
   try {
     news = await db.News.create(cleansed);
+
+    // Assoicate with Orgs
+    const orgs = drupalNews.field_news_org.map(async ({target_id}) => {
+      console.log("Trying to associate with", target_id)
+      const org = await db.Organization.find({
+        where: {
+          legacyData: { drupalId: parseInt(target_id) },
+        },
+      })
+      return org
+    })
+    console.log("Associating orgs with news", orgs)
+    await news.setNewsOrganizations(orgs)
+
   } catch (e) {
     console.error('cannot create news');
     console.error(e);

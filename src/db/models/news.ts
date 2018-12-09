@@ -6,7 +6,6 @@ export interface NewsAttributes {
   id?: number;
   uuid?: string;
 
-  org: number;
   drupal_org_id?: number;
 
   date?: Date;
@@ -16,10 +15,16 @@ export interface NewsAttributes {
 
   createdAt?: string;
   updatedAt?: string;
+
+  // Relationships
+  getNewsOrganizations?: Sequelize.BelongsToGetAssociationMixin<OrganizationInstance[]>;
+  setNewsOrganizations?: Sequelize.BelongsToSetAssociationMixin<
+    OrganizationInstance[],
+    number[]
+  >;
 }
 
-export type NewsInstance = Sequelize.Instance<NewsAttributes> &
-NewsAttributes;
+export type NewsInstance = Sequelize.Instance<NewsAttributes> & NewsAttributes;
 
 export default (sequelize: Sequelize.Sequelize) => {
   let News = sequelize.define<NewsInstance, NewsAttributes>(
@@ -30,18 +35,9 @@ export default (sequelize: Sequelize.Sequelize) => {
         allowNull: true,
         defaultValue: Sequelize.UUIDV4,
       },
-      org: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-        references: { model: sequelize.models.organization, key: 'id' },
-      },
-      drupal_org_id: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-      },
       date: {
         type: Sequelize.DATEONLY,
-        allowNull: true
+        allowNull: true,
       },
       title: { type: Sequelize.TEXT, allowNull: true },
       description: { type: Sequelize.TEXT, allowNull: true },
@@ -62,10 +58,11 @@ export default (sequelize: Sequelize.Sequelize) => {
     Organization: Sequelize.Model<OrganizationInstance, OrganizationAttributes>;
   }) => {
     // @ts-ignore
-    News.Recipient = News.belongsTo(Organization, {
-      as: 'organization',
-      foreignKey: 'org',
-      targetKey: 'id',
+    News.Organizations = News.belongsToMany(Organization, {
+      through: 'news_organizations',
+      as: 'NewsOrganizations',
+      foreignKey: 'organization_id',
+      otherKey: 'news_id',
     });
   };
 

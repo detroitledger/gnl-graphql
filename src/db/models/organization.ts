@@ -165,9 +165,11 @@ export default (sequelize: Sequelize.Sequelize) => {
     });
 
     // @ts-ignore
-    Organization.News = Organization.hasMany(News, {
-      as: 'organization_news',
-      foreignKey: 'org',
+    Organization.News = Organization.belongsToMany(News, {
+      through: 'news_organizations',
+      as: 'NewsOrganizations',
+      foreignKey: 'organization_id',
+      otherKey: 'news_id',
     });
 
     // @ts-ignore
