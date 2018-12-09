@@ -40,6 +40,12 @@ GRANT CONNECT ON DATABASE gnl TO gnl;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO gnl;
 ```
 
+### Running imports (if you have to)
+
+```
+yarn tsc && node dist/scripts/tagImporter.js
+```
+
 ## Use
 `yarn tsc && PORT=3000 node dist/index.js`
 

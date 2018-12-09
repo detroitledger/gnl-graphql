@@ -9,20 +9,20 @@ import organizationTagFactory, * as organizationTag from './organizationTag';
 import nteeGrantTypeFactory, * as nteeGrantType from './nteeGrantType';
 import nteeOrganizationTypeFactory, * as nteeOrganizationType from './nteeOrganizationType';
 import grantFactory, * as grant from './grant';
+import newsFactory, * as news from './news';
 import organizationFactory, * as organization from './organization';
 import organizationMetaFactory, * as organizationMeta from './organizationMeta';
 
 export interface Db {
-  sequelize: Sequelize.Sequelize;
-  Sequelize: Sequelize.SequelizeStatic;
   Form990: Sequelize.Model<form990.Form990Instance, form990.Form990Attributes>;
+  Grant: Sequelize.Model<grant.GrantInstance, grant.GrantAttributes>;
   GrantTag: Sequelize.Model<
     grantTag.GrantTagInstance,
     grantTag.GrantTagAttributes
   >;
-  OrganizationTag: Sequelize.Model<
-    organizationTag.OrganizationTagInstance,
-    organizationTag.OrganizationTagAttributes
+  News: Sequelize.Model<
+    news.NewsInstance,
+    news.NewsAttributes
   >;
   NteeGrantType: Sequelize.Model<
     nteeGrantType.NteeGrantTypeInstance,
@@ -32,7 +32,6 @@ export interface Db {
     nteeOrganizationType.NteeOrganizationTypeInstance,
     nteeOrganizationType.NteeOrganizationTypeAttributes
   >;
-  Grant: Sequelize.Model<grant.GrantInstance, grant.GrantAttributes>;
   Organization: Sequelize.Model<
     organization.OrganizationInstance,
     organization.OrganizationAttributes
@@ -41,6 +40,13 @@ export interface Db {
     organizationMeta.OrganizationMetaInstance,
     organizationMeta.OrganizationMetaAttributes
   >;
+  OrganizationTag: Sequelize.Model<
+  organizationTag.OrganizationTagInstance,
+  organizationTag.OrganizationTagAttributes
+  >;
+  sequelize: Sequelize.Sequelize;
+  Sequelize: Sequelize.SequelizeStatic;
+
 }
 
 export default function dbFactory(): Db {
@@ -54,16 +60,17 @@ export default function dbFactory(): Db {
   const sequelize = new Sequelize(process.env.DATABASE_URL || config.get('database'));
 
   const db: Db = {
-    sequelize,
-    Sequelize,
     Form990: form990Factory(sequelize),
+    Grant: grantFactory(sequelize),
     GrantTag: grantTagFactory(sequelize),
-    OrganizationTag: organizationTagFactory(sequelize),
+    News: newsFactory(sequelize),
     NteeGrantType: nteeGrantTypeFactory(sequelize),
     NteeOrganizationType: nteeOrganizationTypeFactory(sequelize),
-    Grant: grantFactory(sequelize),
     Organization: organizationFactory(sequelize),
     OrganizationMeta: organizationMetaFactory(sequelize),
+    OrganizationTag: organizationTagFactory(sequelize),
+    sequelize,
+    Sequelize,
   };
 
   Object.values(db.sequelize.models).forEach(
