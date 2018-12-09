@@ -88,6 +88,7 @@ const grantType = new GraphQLObjectType({
       // @ts-ignore
       resolve: resolver(db.Grant.GrantTags),
     },
+    amount: { type: GraphQLBigInt },
   },
 });
 
