@@ -34,18 +34,15 @@ export interface Db {
     organization.OrganizationAttributes
   >;
   OrganizationMeta: Sequelize.Model<
-organizationMeta.OrganizationMetaInstance,
+            organizationMeta.OrganizationMetaInstance,
     organizationMeta.OrganizationMetaAttributes
   >;
   OrganizationTag: Sequelize.Model<
-organizationTag.OrganizationTagInstance,
+        organizationTag.OrganizationTagInstance,
     organizationTag.OrganizationTagAttributes
   >;
   sequelize: Sequelize.Sequelize;
-  Sequelize: Sequelize.SequelizeStatic;
-
-
-}
+  Sequelize: Sequelize.SequelizeStatic;}
 
 export default function dbFactory(): Db {
   const logger = baseLogger.child({ module: 'database' });
