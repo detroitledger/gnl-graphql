@@ -29,7 +29,27 @@ export interface NewsAttributes {
 export type NewsInstance = Sequelize.Instance<NewsAttributes> & NewsAttributes;
 
 export default (sequelize: Sequelize.Sequelize) => {
-  let News = sequelize.define<NewsInstance, NewsAttributes>('News', { uuid: { type: Sequelize.UUID, allowNull: true, defaultValue: Sequelize.UUIDV4 }, date: { type: Sequelize.DATEONLY, allowNull: true }, title: { type: Sequelize.TEXT, allowNull: true }, description: { type: Sequelize.TEXT, allowNull: true }, link: { type: Sequelize.TEXT, allowNull: true } }, { createdAt: 'created_at', updatedAt: 'updated_at', underscored: true, freezeTableName: true, tableName: 'news' });
+  let News = sequelize.define<NewsInstance, NewsAttributes>(
+    'News',
+    {
+      uuid: {
+        type: Sequelize.UUID,
+        allowNull: true,
+        defaultValue: Sequelize.UUIDV4,
+      },
+      date: { type: Sequelize.DATEONLY, allowNull: true },
+      title: { type: Sequelize.TEXT, allowNull: true },
+      description: { type: Sequelize.TEXT, allowNull: true },
+      link: { type: Sequelize.TEXT, allowNull: true },
+    },
+    {
+      createdAt: 'created_at',
+      updatedAt: 'updated_at',
+      underscored: true,
+      freezeTableName: true,
+      tableName: 'news',
+    }
+  );
 
   News.associate = ({
     Organization,

@@ -30,11 +30,11 @@ export interface Db {
     nteeOrganizationType.NteeOrganizationTypeAttributes
   >;
   Organization: Sequelize.Model<
-organization.OrganizationInstance,
+    organization.OrganizationInstance,
     organization.OrganizationAttributes
   >;
   OrganizationMeta: Sequelize.Model<
-organizationMeta.OrganizationMetaInstance,
+    organizationMeta.OrganizationMetaInstance,
     organizationMeta.OrganizationMetaAttributes
   >;
   OrganizationTag: Sequelize.Model<
@@ -43,8 +43,6 @@ organizationMeta.OrganizationMetaInstance,
   >;
   sequelize: Sequelize.Sequelize;
   Sequelize: Sequelize.SequelizeStatic;
-
-
 }
 
 export default function dbFactory(): Db {
@@ -55,9 +53,23 @@ export default function dbFactory(): Db {
 
   logger.info('setting up database with dialect %s', dbConfig.dialect);
 
-  const sequelize = new Sequelize(process.env.DATABASE_URL || config.get('database'));
+  const sequelize = new Sequelize(
+    process.env.DATABASE_URL || config.get('database')
+  );
 
-  const db: Db = { Form990: form990Factory(sequelize), Grant: grantFactory(sequelize), GrantTag: grantTagFactory(sequelize), News: newsFactory(sequelize), NteeGrantType: nteeGrantTypeFactory(sequelize), NteeOrganizationType: nteeOrganizationTypeFactory(sequelize), Organization: organizationFactory(sequelize), OrganizationMeta: organizationMetaFactory(sequelize), OrganizationTag: organizationTagFactory(sequelize), sequelize, Sequelize };
+  const db: Db = {
+    Form990: form990Factory(sequelize),
+    Grant: grantFactory(sequelize),
+    GrantTag: grantTagFactory(sequelize),
+    News: newsFactory(sequelize),
+    NteeGrantType: nteeGrantTypeFactory(sequelize),
+    NteeOrganizationType: nteeOrganizationTypeFactory(sequelize),
+    Organization: organizationFactory(sequelize),
+    OrganizationMeta: organizationMetaFactory(sequelize),
+    OrganizationTag: organizationTagFactory(sequelize),
+    sequelize,
+    Sequelize,
+  };
 
   Object.values(db.sequelize.models).forEach(
     (model: Sequelize.Model<any, any>) => {

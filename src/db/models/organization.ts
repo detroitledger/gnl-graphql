@@ -193,7 +193,6 @@ export default (sequelize: Sequelize.Sequelize) => {
         otherKey: 'organization_tag_id',
       }
     );
-
   };
 
   return Organization;
