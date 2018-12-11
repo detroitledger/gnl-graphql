@@ -1,6 +1,7 @@
 import * as Sequelize from 'sequelize';
 
 import { NewsAttributes } from '../db/models/news';
+import { OrganizationInstance } from '../db/models/organization';
 
 import { makeDateonly } from './importHelpers';
 
@@ -11,8 +12,6 @@ const db = dbFactory() as models.Db;
 const news = require(`../../tmp/news.json`).newss;
 
 const importNews = async drupalNews => {
-  console.log('Trying', drupalNews);
-
   const cleansed = {
     uuid: drupalNews.uuid,
     title: drupalNews.title,
@@ -26,18 +25,21 @@ const importNews = async drupalNews => {
     news = await db.News.create(cleansed);
 
     // Assoicate with Orgs
-    const orgs = drupalNews.field_news_org.map(async ({ target_id }) => {
-      console.log('Trying to associate with', target_id);
-      const org = await db.Organization.find({
-        where: {
-          legacyData: { drupalId: parseInt(target_id) },
-        },
-      });
-      return org;
-    });
-    console.log('Associating orgs with news', orgs);
+    let orgs: OrganizationInstance[] = [];
+    if (drupalNews.field_news_org) {
+      for (let drupalOrg of drupalNews.field_news_org) {
+        const org = await db.Organization.find({
+          where: {
+            legacyData: { drupalId: parseInt(drupalOrg.target_id) },
+          },
+        });
+        if (org) orgs = [...orgs, org];
+      }
+    }
+
     await news.setNewsOrganizations(orgs);
   } catch (e) {
+    console.error('ERROR');
     console.error('cannot create news');
     console.error(e);
     process.exit(1);
@@ -52,4 +54,10 @@ export const doImport = async () => {
   }
 };
 
-doImport();
+doImport()
+  .then(() => process.exit(0))
+  .catch(e => {
+    console.error('ERROR');
+    console.error(e);
+    process.exit(1);
+  });
