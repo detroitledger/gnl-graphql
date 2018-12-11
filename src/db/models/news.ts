@@ -5,9 +5,6 @@ import { OrganizationInstance, OrganizationAttributes } from './organization';
 export interface NewsAttributes {
   id?: number;
   uuid?: string;
-
-  drupal_org_id?: number;
-
   date?: Date;
   title?: string;
   description?: string;
@@ -60,8 +57,8 @@ export default (sequelize: Sequelize.Sequelize) => {
     News.Organizations = News.belongsToMany(Organization, {
       through: 'news_organizations',
       as: 'NewsOrganizations',
-      foreignKey: 'organization_id',
-      otherKey: 'news_id',
+      foreignKey: 'news_id',
+      otherKey: 'organization_id',
     });
   };
 
