@@ -1,18 +1,23 @@
 module.exports = {
   up(queryInterface, Sequelize) {
-    return [
-      queryInterface.addColumn('news_organizations', 'created_at', {
+    return queryInterface
+      .addColumn('news_organizations', 'created_at', {
         type: Sequelize.DATE,
         allowNull: false,
-      }),
-      queryInterface.addColumn('news_organizations', 'updated_at', {
-        type: Sequelize.DATE,
-        allowNull: false,
-      }),
-    ];
+      })
+      .then(() =>
+        queryInterface.addColumn('news_organizations', 'updated_at', {
+          type: Sequelize.DATE,
+          allowNull: false,
+        })
+      );
   },
   down(queryInterface) {
-    return queryInterface.dropTable('news_organizations');
+    return queryInterface
+      .removeColumn('news_organizations', 'created_at')
+      .then(() =>
+        queryInterface.removeColumn('news_organizations', 'updated_at')
+      );
   },
   info: {
     revision: 1,
