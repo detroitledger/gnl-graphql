@@ -38,7 +38,12 @@ const orderByMultiResolver = (opts, args) => {
   };
 
   if (args.orderByMulti) {
-    options.order = options.order.concat(args.orderByMulti);
+    options.order = options.order.concat(
+      args.orderByMulti.map(arg => [
+        arg[0],
+        arg[1] === 'ASC' ? 'ASC NULLS LAST' : 'DESC NULLS LAST',
+      ])
+    );
   }
 
   return options;
