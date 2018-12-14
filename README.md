@@ -15,10 +15,6 @@ Built using:
 
 We use the `config` package to manage our configurations. See `config/default.toml`.
 
-Due to the idiosyncratic nature of its configuration, if you want to run the `sequelize`
-command-line utility (for example, to run a migration), you need to duplicate configuration
-settings from the `config` system into `src/db/config.json`.
-
 ## Set up databases
 
 Create a postgres db that matches the info in `config/default.toml` or alternatively set up your
