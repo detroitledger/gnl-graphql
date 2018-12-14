@@ -4,7 +4,7 @@
   "description": "graphql server for detroit ledger",
   "scripts": {
     "start": "tsc && node dist/index.js",
-    "test": "prettier -l \"src/**/*.*\" || (echo Formatting errors, try running \\\"yarn prettier\\\" && exit 1)",
+    "test": "yarn tsc && prettier -l \"src/**/*.*\" || (echo Formatting errors, try running \\\"yarn prettier\\\" && exit 1)",
     "lint": "eslint .",
     "prettier": "prettier --write \"src/**/*.*\""
   },
