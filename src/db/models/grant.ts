@@ -24,15 +24,15 @@ export interface GrantAttributes {
   updatedAt?: string;
 
   // Relationships
-  getGrantTags?: Sequelize.BelongsToGetAssociationMixin<GrantTagInstance[]>;
-  setGrantTags?: Sequelize.BelongsToSetAssociationMixin<
+  getGrantGrantTag?: Sequelize.BelongsToGetAssociationMixin<GrantTagInstance[]>;
+  setGrantGrantTag?: Sequelize.BelongsToSetAssociationMixin<
     GrantTagInstance[],
     number[]
   >;
-  getNteeGrantTypes?: Sequelize.BelongsToGetAssociationMixin<
+  getGrantNteeGrantType?: Sequelize.BelongsToGetAssociationMixin<
     NteeGrantTypeInstance[]
   >;
-  setNteeGrantTypes?: Sequelize.BelongsToSetAssociationMixin<
+  setGrantNteeGrantType?: Sequelize.BelongsToSetAssociationMixin<
     NteeGrantTypeInstance[],
     number[]
   >;
