@@ -38,6 +38,8 @@ GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO gnl;
 
 ## Seed data & integration tests
 
+Seed data generators are available at `src/db/seeders`. Currently the `test-data` seeder generates a hundred tags for each tag type, a thousand organizations, ten thousand grants, and six thousand rows of IRS data.
+
 Modify `config/test.toml` as needed, and then:
 
 ```
