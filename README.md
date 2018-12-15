@@ -36,6 +36,18 @@ GRANT CONNECT ON DATABASE gnl TO gnl;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO gnl;
 ```
 
+## Seed data & integration tests
+
+Modify `config/test.toml` as needed, and then:
+
+```
+yarn tsc
+NODE_ENV=test yarn sequelize db:drop
+NODE_ENV=test yarn sequelize db:create
+NODE_ENV=test yarn sequelize db:migrate
+NODE_ENV=test yarn sequelize db:seed:all
+```
+
 ## Use
 `yarn tsc && PORT=3000 node dist/index.js`
 

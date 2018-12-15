@@ -1,0 +1,7 @@
+[database]
+dialect = 'postgres'
+host = 'localhost'
+port = 5432
+database = 'gnl_test'
+user = 'gnl'
+password = ''

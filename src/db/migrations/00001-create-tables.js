@@ -4,6 +4,49 @@ const getMigrationCommands = Sequelize => [
   {
     fn: 'createTable',
     params: [
+      'form_990',
+      {
+        id: {
+          type: Sequelize.BIGINT,
+          autoIncrement: true,
+          primaryKey: true,
+        },
+        source: Sequelize.STRING(50),
+        org: Sequelize.BIGINT,
+        ein: Sequelize.STRING(50),
+        subseccd: Sequelize.STRING(50),
+        pdf: Sequelize.STRING(255),
+        filing_type: Sequelize.STRING(50),
+        start_year: Sequelize.INTEGER,
+        end_year: Sequelize.INTEGER,
+        irs_year: Sequelize.INTEGER,
+        filing_date: Sequelize.STRING(25),
+        tax_period: Sequelize.STRING(25),
+        contributions_and_grants: Sequelize.BIGINT,
+        program_service_revenue: Sequelize.BIGINT,
+        investment_income: Sequelize.BIGINT,
+        other_revenue: Sequelize.BIGINT,
+        total_revenue: Sequelize.BIGINT,
+        grants_paid: Sequelize.BIGINT,
+        benefits_paid: Sequelize.BIGINT,
+        compensation: Sequelize.BIGINT,
+        fundraising_fees: Sequelize.BIGINT,
+        total_fundraising_expenses: Sequelize.BIGINT,
+        other_expenses: Sequelize.BIGINT,
+        total_expenses: Sequelize.BIGINT,
+        revenue_less_expenses: Sequelize.BIGINT,
+        total_assets: Sequelize.BIGINT,
+        total_liabilities: Sequelize.BIGINT,
+        net_assets: Sequelize.BIGINT,
+        data: Sequelize.JSONB,
+        created_at: Sequelize.DATE,
+        updated_at: Sequelize.DATE,
+      },
+    ],
+  },
+  {
+    fn: 'createTable',
+    params: [
       'grant_tag',
       {
         id: {
@@ -456,6 +499,10 @@ const getMigrationCommands = Sequelize => [
 ];
 
 const rollbackCommands = [
+  {
+    fn: 'dropTable',
+    params: ['form_990'],
+  },
   {
     fn: 'dropTable',
     params: ['grant_tag'],
