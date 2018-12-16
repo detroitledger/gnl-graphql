@@ -10,7 +10,7 @@ import {
 import { OrganizationTagAttributes } from '../models/organizationTag';
 import { GrantTagAttributes } from '../models/grantTag';
 import { NteeOrganizationTypeAttributes } from '../models/nteeOrganizationType';
-import { NteeGrantTypeAttributes } from '../models/NteeGrantType';
+import { NteeGrantTypeAttributes } from '../models/nteeGrantType';
 
 import {
   OrganizationAttributes,
