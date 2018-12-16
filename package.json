@@ -4,7 +4,8 @@
   "description": "graphql server for detroit ledger",
   "scripts": {
     "start": "tsc && node dist/index.js",
-    "test": "yarn tsc && prettier -l \"src/**/*.*\" || (echo Formatting errors, try running \\\"yarn prettier\\\" && exit 1)",
+    "test": "./testrunners/build-lint.sh && ./testrunners/db-setup.sh && ./testrunners/db-seed.sh",
+    "precommit-test-only": "./testrunners/build-lint.sh",
     "lint": "eslint .",
     "prettier": "prettier --write \"src/**/*.*\""
   },
@@ -75,7 +76,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn test"
+      "pre-commit": "yarn precommit-test-only"
     }
   }
 }
