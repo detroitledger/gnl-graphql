@@ -12,7 +12,7 @@ dialect = 'postgres'
 host = 'localhost'
 port = 5432
 database = 'gnl'
-user = 'gnl'
+username = 'gnl'
 
 [auth]
 allowed_emails = 'e@mail.com bee@mail.com'

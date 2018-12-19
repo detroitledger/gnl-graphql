@@ -11,7 +11,7 @@ dialect = 'postgres'
 host = 'xxx'
 port = 5432
 database = 'postgres'
-user = 'xxx'
+username = 'xxx'
 password = 'xxx'
 [database.dialectOptions]
 ssl = true
