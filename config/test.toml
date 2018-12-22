@@ -1,3 +1,7 @@
+[[log]]
+level = 'error'
+out = 'stdout'
+
 [database]
 dialect = 'postgres'
 host = 'localhost'

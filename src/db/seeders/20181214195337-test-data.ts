@@ -107,8 +107,8 @@ export const up = async (
             url: `gopher://${i}`,
           },
         ] as Link[],
-        founded: new Date(i * 86400),
-        dissolved: new Date(i * 86400 + 86400),
+        founded: new Date(Date.UTC(2000, i % 11, (i % 27) + 1)),
+        dissolved: new Date(Date.UTC(2001, i % 11, (i % 27) + 1)),
         legacyData: {
           drupalId: i,
         } as OrganizationLegacyData,
@@ -179,8 +179,8 @@ export const up = async (
       ({
         from: createdOrgs[Math.floor(i / 100) + 1].id,
         to: createdOrgs[Math.floor(i / 100) + 2].id,
-        dateFrom: new Date(),
-        dateTo: new Date(),
+        dateFrom: new Date(Date.UTC(2001, i % 11, (i % 27) + 1)),
+        dateTo: new Date(Date.UTC(2010, i % 11, (i % 27) + 1)),
         amount: i,
         source: `grant ${i} source`,
         description: `grant ${i} description`,
@@ -225,6 +225,10 @@ export const up = async (
       await createdGrant.setGrantNteeGrantType(grantNtees);
     }
   }
+
+  await queryInterface.sequelize.query(
+    'REFRESH MATERIALIZED VIEW organization_meta'
+  );
 
   return;
 };
