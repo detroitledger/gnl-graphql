@@ -1,5 +1,6 @@
 import * as config from 'config';
 import * as Sequelize from 'sequelize';
+import { parse as urlParse } from 'url';
 
 import { logger as baseLogger } from '../../logger';
 
@@ -51,9 +52,35 @@ export default function dbFactory(): Db {
 
   logger.info('setting up database with dialect %s', dbConfig.dialect);
 
-  const sequelize = new Sequelize(
-    process.env.DATABASE_URL || config.get('database')
-  );
+  dbConfig.dialectOptions = {
+    typeCast(field, next) {
+      if (field.type === 'DATEONLY') {
+        return field.string();
+      }
+      return next();
+    },
+  };
+
+  if (process.env.DATABASE_URL) {
+    const parsed = urlParse(process.env.DATABASE_URL);
+    if (!parsed) {
+      throw new Error('cannot prase DATABASE_URL');
+      process.exit(1);
+    }
+
+    try {
+      dbConfig.host = parsed.host || '';
+      dbConfig.port = parseInt(parsed.port || '0');
+      dbConfig.database = parsed.path && parsed.path.replace('/', '');
+      dbConfig.username = parsed.auth && parsed.auth.split(':')[0];
+      dbConfig.password = parsed.auth && parsed.auth.split(':')[1];
+    } catch (e) {
+      logger.error('cannot retrieve config from DATABASE_URL');
+      process.exit(1);
+    }
+  }
+
+  const sequelize = new Sequelize(dbConfig);
 
   const db: Db = {
     sequelize,
