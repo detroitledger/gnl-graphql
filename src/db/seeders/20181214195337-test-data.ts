@@ -35,11 +35,11 @@ export const up = async (
 ) => {
   const db = dbFactory() as models.Db;
 
-  const aHundred = [...Array(100).keys()];
-  const aThousand = [...Array(1000).keys()];
-  const tenThousand = [...Array(10000).keys()];
+  const aFew = [...Array(10).keys()];
+  const aBunch = [...Array(100).keys()];
+  const aWholeLot = [...Array(1000).keys()];
 
-  for (let organizationTag of aHundred.map(
+  for (let organizationTag of aFew.map(
     i =>
       ({
         name: `test organization tag ${i}`,
@@ -50,7 +50,7 @@ export const up = async (
     await db.OrganizationTag.create(organizationTag);
   }
 
-  for (let grantTag of aHundred.map(
+  for (let grantTag of aFew.map(
     i =>
       ({
         name: `test grant tag ${i}`,
@@ -61,7 +61,7 @@ export const up = async (
     await db.GrantTag.create(grantTag);
   }
 
-  for (let nteeOrganizationType of aHundred.map(
+  for (let nteeOrganizationType of aFew.map(
     i =>
       ({
         name: `test ntee organization type ${i}`,
@@ -73,7 +73,7 @@ export const up = async (
     await db.NteeOrganizationType.create(nteeOrganizationType);
   }
 
-  for (let nteeGrantType of aHundred.map(
+  for (let nteeGrantType of aFew.map(
     i =>
       ({
         name: `test ntee grant type ${i}`,
@@ -86,7 +86,7 @@ export const up = async (
 
   let createdOrgs: OrganizationInstance[] = [];
 
-  for (let organization of aThousand.map(
+  for (let organization of aBunch.map(
     i =>
       ({
         name: `test organization ${i}`,
@@ -152,7 +152,7 @@ export const up = async (
     }
   }
 
-  for (let form990 of aThousand.map(
+  for (let form990 of aBunch.map(
     i =>
       ({
         ein: `${i}`,
@@ -174,7 +174,7 @@ export const up = async (
     }
   }
 
-  for (let grant of tenThousand.map(
+  for (let grant of aWholeLot.map(
     i =>
       ({
         from: createdOrgs[Math.floor(i / 100) + 1].id,
