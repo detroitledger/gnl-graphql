@@ -52,15 +52,6 @@ export default function dbFactory(): Db {
 
   logger.info('setting up database with dialect %s', dbConfig.dialect);
 
-  dbConfig.dialectOptions = {
-    typeCast(field, next) {
-      if (field.type === 'DATEONLY') {
-        return field.string();
-      }
-      return next();
-    },
-  };
-
   if (process.env.DATABASE_URL) {
     const parsed = urlParse(process.env.DATABASE_URL);
     if (!parsed) {
