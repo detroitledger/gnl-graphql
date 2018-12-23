@@ -46,7 +46,7 @@ export interface Db {
 
 export default function dbFactory(): Db {
   const logger = baseLogger.child({ module: 'database' });
-  const dbConfig = config.get('database') as Sequelize.Options;
+  let dbConfig = config.get('database') as Sequelize.Options;
 
   dbConfig.logging = msg => logger.debug(msg);
 
@@ -59,16 +59,14 @@ export default function dbFactory(): Db {
       process.exit(1);
     }
 
-    try {
-      dbConfig.host = parsed.host || '';
-      dbConfig.port = parseInt(parsed.port || '0');
-      dbConfig.database = parsed.path && parsed.path.replace('/', '');
-      dbConfig.username = parsed.auth && parsed.auth.split(':')[0];
-      dbConfig.password = parsed.auth && parsed.auth.split(':')[1];
-    } catch (e) {
-      logger.error('cannot retrieve config from DATABASE_URL');
-      process.exit(1);
-    }
+    dbConfig = {
+      ...dbConfig,
+      host: parsed.hostname || '',
+      port: parseInt(parsed.port || '0'),
+      database: parsed.path && parsed.path.replace('/', ''),
+      username: parsed.auth && parsed.auth.split(':')[0],
+      password: parsed.auth && parsed.auth.split(':')[1],
+    } as Sequelize.Options;
   }
 
   const sequelize = new Sequelize(dbConfig);
