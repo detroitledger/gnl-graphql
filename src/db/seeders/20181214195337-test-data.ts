@@ -107,8 +107,8 @@ export const up = async (
             url: `gopher://${i}`,
           },
         ] as Link[],
-        founded: new Date(Date.UTC(2000, i % 11, (i % 27) + 1)),
-        dissolved: new Date(Date.UTC(2001, i % 11, (i % 27) + 1)),
+        founded: new Date(2000, i % 11, (i % 27) + 1),
+        dissolved: new Date(2001, i % 11, (i % 27) + 1),
         legacyData: {
           drupalId: i,
         } as OrganizationLegacyData,
@@ -179,8 +179,8 @@ export const up = async (
       ({
         from: createdOrgs[Math.floor(i / 100) + 1].id,
         to: createdOrgs[Math.floor(i / 100) + 2].id,
-        dateFrom: new Date(Date.UTC(2001, i % 11, (i % 27) + 1)),
-        dateTo: new Date(Date.UTC(2010, i % 11, (i % 27) + 1)),
+        dateFrom: new Date(2001, i % 11, (i % 27) + 1),
+        dateTo: new Date(2010, i % 11, (i % 27) + 1),
         amount: i,
         source: `grant ${i} source`,
         description: `grant ${i} description`,
