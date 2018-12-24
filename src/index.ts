@@ -31,6 +31,38 @@ import dbFactory, * as models from './db/models';
 // Initalize database
 const db = dbFactory() as models.Db;
 
+const orderByMultiResolver = (opts, args) => {
+  const options = {
+    order: [],
+    ...opts,
+  };
+
+  if (args.orderByMulti) {
+    options.order = options.order.concat(
+      args.orderByMulti.map(arg => [
+        arg[0],
+        arg[1] === 'ASC' ? 'ASC NULLS LAST' : 'DESC NULLS LAST',
+      ])
+    );
+  }
+
+  return options;
+};
+
+const organizationNameILikeResolver = (opts, args) => {
+  if (args.organizationNameILike)
+    opts.include = [
+      {
+        required: true,
+        model: db.Organization,
+        where: {
+          name: { [db.sequelize.Op.iLike]: args.organizationNameILike },
+        },
+      },
+    ];
+  return opts;
+};
+
 resolver.contextToOptions = { [EXPECTED_OPTIONS_KEY]: EXPECTED_OPTIONS_KEY };
 
 const shallowOrganizationType = new GraphQLObjectType({
@@ -186,16 +218,34 @@ const server = new GraphQLServer({
           args: {
             ...defaultListArgs(),
             ...defaultArgs(db.Organization),
+            orderByMulti: {
+              type: new GraphQLList(new GraphQLList(GraphQLString)),
+            },
           },
-          resolve: resolver(db.Organization),
+          resolve: resolver(db.Organization, {
+            before: orderByMultiResolver,
+          }),
         },
         organizationMetas: {
           type: new GraphQLList(organizationMetaType),
           args: {
             ...defaultListArgs(),
             ...defaultArgs(db.OrganizationMeta),
+            orderByMulti: {
+              type: new GraphQLList(new GraphQLList(GraphQLString)),
+            },
+            organizationNameILike: {
+              type: GraphQLString,
+            },
           },
-          resolve: resolver(db.OrganizationMeta),
+          resolve: resolver(db.OrganizationMeta, {
+            before: (opts, args) => {
+              return organizationNameILikeResolver(
+                orderByMultiResolver(opts, args),
+                args
+              );
+            },
+          }),
         },
         grant: {
           type: grantType,
