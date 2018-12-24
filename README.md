@@ -15,10 +15,6 @@ Built using:
 
 We use the `config` package to manage our configurations. See `config/default.toml`.
 
-Due to the idiosyncratic nature of its configuration, if you want to run the `sequelize`
-command-line utility (for example, to run a migration), you need to duplicate configuration
-settings from the `config` system into `src/db/config.json`.
-
 ## Set up databases
 
 Create a postgres db that matches the info in `config/default.toml` or alternatively set up your
@@ -44,6 +40,20 @@ GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO gnl;
 
 ```
 yarn tsc && node dist/scripts/tagImporter.js
+```
+
+## Seed data & integration tests
+
+Seed data generators are available at `src/db/seeders`. Currently the `test-data` seeder generates a hundred tags for each tag type, a thousand organizations, ten thousand grants, and six thousand rows of IRS data.
+
+Modify `config/test.toml` as needed, and then:
+
+```
+yarn tsc
+NODE_ENV=test yarn sequelize db:drop
+NODE_ENV=test yarn sequelize db:create
+NODE_ENV=test yarn sequelize db:migrate
+NODE_ENV=test yarn sequelize db:seed:all
 ```
 
 ## Use

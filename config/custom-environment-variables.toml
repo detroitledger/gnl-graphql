@@ -9,7 +9,7 @@ dialect = 'DATABASE_DIALECT'
 host = 'DATABASE_HOST'
 port = 'DATABASE_PORT'
 database = 'DATABASE_NAME'
-user = 'DATABASE_USER'
+username = 'DATABASE_USER'
 password = 'DATABASE_PASSWORD'
 
 [google]

@@ -3,6 +3,12 @@ jobs:
   build:
     docker:
       - image: circleci/node:10
+        environment:
+          NODE_ENV: test
+      - image: circleci/postgres:10-alpine
+        environment:
+          POSTGRES_USER: gnl
+          POSTGRES_DB: gnl_test
 
     working_directory: ~/repo
 

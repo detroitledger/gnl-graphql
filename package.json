@@ -4,7 +4,9 @@
   "description": "graphql server for detroit ledger",
   "scripts": {
     "start": "tsc && node dist/index.js",
-    "test": "yarn tsc && prettier -l \"src/**/*.*\" || (echo Formatting errors, try running \\\"yarn prettier\\\" && exit 1)",
+    "pretest": "./testrunners/build-lint.sh && ./testrunners/db-setup.sh && ./testrunners/db-seed.sh",
+    "test": "jest integration-tests --forceExit",
+    "precommit-test-only": "./testrunners/build-lint.sh",
     "lint": "eslint .",
     "prettier": "prettier --write \"src/**/*.*\""
   },
@@ -14,13 +16,12 @@
     "bunyan": "^1.8.12",
     "config": "^2.0.1",
     "dataloader-sequelize": "1.7.6",
-    "express": "^4.14.0",
     "google-auth-library": "1.6.1",
     "graphql": "14.0.2",
     "graphql-bigint": "1.0.0",
     "graphql-relay": "0.5.5",
     "graphql-sequelize": "9.2.0",
-    "graphql-yoga": "1.16.7",
+    "graphql-yoga": "1.16.8",
     "lodash": "^4.17.4",
     "pg": "^6.1.0",
     "sequelize": "4.38.0",
@@ -47,7 +48,9 @@
     "eslint-config-airbnb": "^10.0.1",
     "eslint-plugin-import": "^1.14.0",
     "eslint-plugin-react": "^6.2.0",
+    "graphql-request": "^1.8.2",
     "husky": "^1.1.2",
+    "jest": "^23.6.0",
     "prettier": "1.14.3",
     "sequelize-cli": "^4.1.1",
     "typescript": "3.0.3"
@@ -75,7 +78,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn test"
+      "pre-commit": "yarn precommit-test-only"
     }
   }
 }

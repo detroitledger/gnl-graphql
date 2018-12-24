@@ -2,11 +2,6 @@ import * as fs from 'fs';
 import * as Sequelize from 'sequelize';
 
 import {
-  AbstractDrupalTagAttributes,
-  AbstractDrupalTagInstance,
-} from '../db/models/abstractDrupalTag';
-
-import {
   OrganizationAttributes,
   Address,
   LegacyData,

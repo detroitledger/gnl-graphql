@@ -31,17 +31,17 @@ export interface OrganizationAttributes {
   updatedAt?: string;
 
   // Relationships
-  getOrganizationTags?: Sequelize.BelongsToGetAssociationMixin<
+  getOrganizationOrganizationTag?: Sequelize.BelongsToGetAssociationMixin<
     OrganizationTagInstance[]
   >;
-  setOrganizationTags?: Sequelize.BelongsToSetAssociationMixin<
+  setOrganizationOrganizationTag?: Sequelize.BelongsToSetAssociationMixin<
     OrganizationTagInstance[],
     number[]
   >;
-  getNteeOrganizationTypes?: Sequelize.BelongsToGetAssociationMixin<
+  getOrganizationNteeOrganizationType?: Sequelize.BelongsToGetAssociationMixin<
     NteeOrganizationTypeInstance[]
   >;
-  setNteeOrganizationTypes?: Sequelize.BelongsToSetAssociationMixin<
+  setOrganizationNteeOrganizationType?: Sequelize.BelongsToSetAssociationMixin<
     NteeOrganizationTypeInstance[],
     number[]
   >;
@@ -84,10 +84,6 @@ export default (sequelize: Sequelize.Sequelize) => {
   >(
     'Organization',
     {
-      id: {
-        type: Sequelize.INTEGER,
-        primaryKey: true,
-      },
       uuid: {
         type: Sequelize.UUID,
         allowNull: true,
