@@ -1,5 +1,6 @@
 import * as config from 'config';
 import * as Sequelize from 'sequelize';
+import { parse as urlParse } from 'url';
 
 import { logger as baseLogger } from '../../logger';
 
@@ -45,15 +46,30 @@ export interface Db {
 
 export default function dbFactory(): Db {
   const logger = baseLogger.child({ module: 'database' });
-  const dbConfig = config.get('database') as Sequelize.Options;
+  let dbConfig = config.get('database') as Sequelize.Options;
 
   dbConfig.logging = msg => logger.debug(msg);
 
   logger.info('setting up database with dialect %s', dbConfig.dialect);
 
-  const sequelize = new Sequelize(
-    process.env.DATABASE_URL || config.get('database')
-  );
+  if (process.env.DATABASE_URL) {
+    const parsed = urlParse(process.env.DATABASE_URL);
+    if (!parsed) {
+      throw new Error('cannot prase DATABASE_URL');
+      process.exit(1);
+    }
+
+    dbConfig = {
+      ...dbConfig,
+      host: parsed.hostname || '',
+      port: parseInt(parsed.port || '0'),
+      database: parsed.path && parsed.path.replace('/', ''),
+      username: parsed.auth && parsed.auth.split(':')[0],
+      password: parsed.auth && parsed.auth.split(':')[1],
+    } as Sequelize.Options;
+  }
+
+  const sequelize = new Sequelize(dbConfig);
 
   const db: Db = {
     sequelize,

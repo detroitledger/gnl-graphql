@@ -23,10 +23,6 @@ export default (sequelize: Sequelize.Sequelize) => {
   >(
     'OrganizationMeta',
     {
-      id: {
-        type: Sequelize.INTEGER,
-        primaryKey: true,
-      },
       uuid: {
         type: Sequelize.UUID,
       },
