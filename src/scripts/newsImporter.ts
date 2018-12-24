@@ -1,6 +1,7 @@
 import * as Sequelize from 'sequelize';
 
 import { NewsAttributes } from '../db/models/news';
+import { GrantInstance } from '../db/models/grant';
 import { OrganizationInstance } from '../db/models/organization';
 
 import { makeDateonly } from './importHelpers';
@@ -15,14 +16,29 @@ const importNews = async drupalNews => {
   const cleansed = {
     uuid: drupalNews.uuid,
     title: drupalNews.title,
-    description: drupalNews.notes,
-    link: drupalNews.notes,
-    date: makeDateonly(drupalNews.field_year, 'value'),
+    description: drupalNews.field_news_desc,
+    link: drupalNews.field_news_link,
+    date: drupalNews.field_news_date,
   } as NewsAttributes;
 
   let news;
   try {
     news = await db.News.create(cleansed);
+
+    // Assoicate with Grants
+    let grants: GrantInstance[] = [];
+    if (drupalNews.field_news_grant) {
+      for (let drupalGrant of drupalNews.field_news_grant) {
+        const grant = await db.Grant.find({
+          where: {
+            legacyData: { drupalId: parseInt(drupalGrant.target_id) },
+          },
+        });
+        if (grant) grants = [...grants, grant];
+      }
+    }
+
+    await news.setNewsGrants(grants);
 
     // Assoicate with Orgs
     let orgs: OrganizationInstance[] = [];

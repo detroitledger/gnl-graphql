@@ -120,6 +120,24 @@ export default function createServer(db: Db): GraphQLServer {
     fields: attributeFields(db.Form990),
   });
 
+  const newsType = new GraphQLObjectType({
+    name: 'News',
+    description: 'News related to one or many organizations',
+    fields: {
+      ...attributeFields(db.News, { exclude: ['id'] }),
+      organizations: {
+        type: new GraphQLList(shallowOrganizationType),
+        // @ts-ignore
+        resolve: resolver(db.News.Organizations),
+      },
+      grants: {
+        type: new GraphQLList(grantType),
+        // @ts-ignore
+        resolve: resolver(db.News.Grants),
+      },
+    },
+  });
+
   const organizationType = new GraphQLObjectType({
     name: 'Organization',
     description: 'An organization, duh',
@@ -139,6 +157,11 @@ export default function createServer(db: Db): GraphQLServer {
         type: new GraphQLList(form990Type),
         // @ts-ignore
         resolve: resolver(db.Organization.Forms990),
+      },
+      news: {
+        type: new GraphQLList(newsType),
+        // @ts-ignore
+        resolve: resolver(db.Organization.News),
       },
       nteeOrganizationTypes: {
         type: new GraphQLList(nteeOrganizationTypeType),
@@ -204,6 +227,14 @@ export default function createServer(db: Db): GraphQLServer {
               primaryKeyAttributes: ['uuid'],
             }),
             resolve: resolver(db.Organization),
+          },
+          news: {
+            type: new GraphQLList(newsType),
+            args: {
+              ...defaultListArgs(),
+              ...defaultArgs(db.News),
+            },
+            resolve: resolver(db.News),
           },
           organizations: {
             type: new GraphQLList(organizationType),
