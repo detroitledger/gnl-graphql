@@ -234,7 +234,7 @@ export const up = async (
     title: `news ${i} title`,
     description: `news ${i} description`,
     link: `news ${i} link`,
-    date: new Date(2000, i % 11, (i % 27) + 1),
+    date: new Date(Date.UTC(2000, i % 11, (i % 27) + 1)),
   }))) {
     let createdNews = await db.News.create(news);
 

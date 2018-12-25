@@ -5,6 +5,7 @@ import createServer from '../dist/server';
 import dbFactory, * as models from '../dist/db/models';
 
 import * as orgsWithGrants from './test-queries/orgs-with-grants';
+import * as someNews from './test-queries/some-news';
 
 let context = {};
 
@@ -26,6 +27,16 @@ test('answers a sample query', async () => {
   const res = await request(uri, orgsWithGrants.query);
 
   expect(res).toEqual(orgsWithGrants.expected.data);
+
+  instance.close();
+});
+
+test('answers a news sample query', async () => {
+  const { uri, instance } = await createServerInstance();
+
+  const res = await request(uri, someNews.query);
+
+  expect(res).toEqual(someNews.expected.data);
 
   instance.close();
 });
