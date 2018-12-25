@@ -24,6 +24,7 @@ import { Form990Attributes } from '../models/form990';
 
 import {
   GrantAttributes,
+  GrantInstance,
   LegacyData as GrantLegacyData,
 } from '../models/grant';
 
@@ -85,6 +86,7 @@ export const up = async (
   }
 
   let createdOrgs: OrganizationInstance[] = [];
+  let createdGrants: GrantInstance[] = [];
 
   for (let organization of aBunch.map(
     i =>
@@ -195,6 +197,8 @@ export const up = async (
 
     const count = createdGrant.amount || 1;
 
+    createdGrants[count] = createdGrant;
+
     const grantTags = await db.GrantTag.findAll({
       where: {
         drupalId: {
@@ -223,6 +227,47 @@ export const up = async (
 
     if (createdGrant.setGrantNteeGrantType) {
       await createdGrant.setGrantNteeGrantType(grantNtees);
+    }
+  }
+
+  for (let news of aBunch.map(i => ({
+    title: `news ${i} title`,
+    description: `news ${i} description`,
+    link: `news ${i} link`,
+    date: new Date(2000, i % 11, (i % 27) + 1),
+  }))) {
+    let createdNews = await db.News.create(news);
+
+    const count = createdNews.id || 1;
+
+    const newsOrgs = await db.Organization.findAll({
+      where: {
+        id: {
+          [Sequelize.Op.between]: [
+            Math.floor(count / 10),
+            Math.floor(count / 10 + 10),
+          ],
+        },
+      },
+    });
+
+    if (createdNews.setNewsOrganizations) {
+      await createdNews.setNewsOrganizations(newsOrgs);
+    }
+
+    const newsGrants = await db.Grant.findAll({
+      where: {
+        id: {
+          [Sequelize.Op.between]: [
+            Math.floor(count / 10),
+            Math.floor(count / 10 + 10),
+          ],
+        },
+      },
+    });
+
+    if (createdNews.setNewsGrants) {
+      await createdNews.setNewsGrants(newsGrants);
     }
   }
 
