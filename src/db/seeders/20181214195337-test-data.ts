@@ -11,6 +11,8 @@ import { OrganizationTagAttributes } from '../models/organizationTag';
 import { GrantTagAttributes } from '../models/grantTag';
 import { NteeOrganizationTypeAttributes } from '../models/nteeOrganizationType';
 import { NteeGrantTypeAttributes } from '../models/nteeGrantType';
+import { PersonAttributes } from '../models/person';
+import { BoardTermAttributes } from '../models/boardTerm';
 
 import {
   OrganizationAttributes,
@@ -271,6 +273,37 @@ export const up = async (
     }
   }
 
+  for (let person of aBunch.map(i => ({
+    name: `person ${i} name`,
+  }))) {
+    let createdPerson = await db.Person.create(person);
+
+    const count = createdPerson.id || 1;
+
+    const orgs = await db.Organization.findAll({
+      where: {
+        id: {
+          [Sequelize.Op.between]: [
+            Math.floor(count / 10),
+            Math.floor(count / 10 + 10),
+          ],
+        },
+      },
+    });
+
+    for (const org of orgs) {
+      await db.BoardTerm.create({
+        person: count,
+        organization: org.id || 1,
+        dateFrom: new Date(),
+        dateTo: new Date(),
+        source: `board term ${count} source`,
+        position: `board term ${count} position`,
+        compensation: count * 1000,
+      });
+    }
+  }
+
   await queryInterface.sequelize.query(
     'REFRESH MATERIALIZED VIEW organization_meta'
   );
@@ -288,6 +321,8 @@ export const down = async (
   await queryInterface.bulkDelete('ntee_grant_type', {});
   await queryInterface.bulkDelete('organization', {});
   await queryInterface.bulkDelete('grant', {});
+  await queryInterface.bulkDelete('board_term', {});
+  await queryInterface.bulkDelete('person', {});
 
   return;
 };

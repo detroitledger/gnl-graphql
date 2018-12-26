@@ -10,6 +10,7 @@ import {
   OrganizationTagAttributes,
 } from './organizationTag';
 import { Form990Instance, Form990Attributes } from './form990';
+import { BoardTermInstance, BoardTermAttributes } from './boardTerm';
 
 export interface OrganizationAttributes {
   id?: number;
@@ -124,12 +125,14 @@ export default (sequelize: Sequelize.Sequelize) => {
 
   // Set up relations
   Organization.associate = ({
+    BoardTerm,
     Form990,
     Grant,
     News,
     NteeOrganizationType,
     OrganizationTag,
   }: {
+    BoardTerm: Sequelize.Model<BoardTermInstance, BoardTermAttributes>;
     Form990: Sequelize.Model<Form990Instance, Form990Attributes>;
     Grant: Sequelize.Model<GrantInstance, GrantAttributes>;
     News: Sequelize.Model<NewsInstance, NewsAttributes>;
@@ -142,6 +145,12 @@ export default (sequelize: Sequelize.Sequelize) => {
       OrganizationTagAttributes
     >;
   }) => {
+    // @ts-ignore
+    Organization.BoardTerms = Organization.hasMany(BoardTerm, {
+      sourceKey: 'id',
+      foreignKey: 'organization',
+    });
+
     // @ts-ignore
     Organization.Forms990 = Organization.hasMany(Form990, {
       sourceKey: 'ein',

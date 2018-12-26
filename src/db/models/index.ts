@@ -4,6 +4,7 @@ import { parse as urlParse } from 'url';
 
 import { logger as baseLogger } from '../../logger';
 
+import boardTermFactory, * as boardTerm from './boardTerm';
 import form990Factory, * as form990 from './form990';
 import grantTagFactory, * as grantTag from './grantTag';
 import organizationTagFactory, * as organizationTag from './organizationTag';
@@ -13,8 +14,13 @@ import grantFactory, * as grant from './grant';
 import newsFactory, * as news from './news';
 import organizationFactory, * as organization from './organization';
 import organizationMetaFactory, * as organizationMeta from './organizationMeta';
+import personFactory, * as person from './person';
 
 export interface Db {
+  BoardTerm: Sequelize.Model<
+    boardTerm.BoardTermInstance,
+    boardTerm.BoardTermAttributes
+  >;
   Form990: Sequelize.Model<form990.Form990Instance, form990.Form990Attributes>;
   Grant: Sequelize.Model<grant.GrantInstance, grant.GrantAttributes>;
   GrantTag: Sequelize.Model<
@@ -42,6 +48,7 @@ export interface Db {
     organizationTag.OrganizationTagInstance,
     organizationTag.OrganizationTagAttributes
   >;
+  Person: Sequelize.Model<person.PersonInstance, person.PersonAttributes>;
   sequelize: Sequelize.Sequelize;
   Sequelize: Sequelize.SequelizeStatic;
 }
@@ -74,6 +81,7 @@ export default function dbFactory(): Db {
   const sequelize = new Sequelize(dbConfig);
 
   const db: Db = {
+    BoardTerm: boardTermFactory(sequelize),
     Form990: form990Factory(sequelize),
     Grant: grantFactory(sequelize),
     GrantTag: grantTagFactory(sequelize),
@@ -83,6 +91,7 @@ export default function dbFactory(): Db {
     Organization: organizationFactory(sequelize),
     OrganizationMeta: organizationMetaFactory(sequelize),
     OrganizationTag: organizationTagFactory(sequelize),
+    Person: personFactory(sequelize),
     sequelize,
     Sequelize,
   };
