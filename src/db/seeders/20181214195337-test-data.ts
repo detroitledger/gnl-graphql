@@ -295,8 +295,8 @@ export const up = async (
       await db.BoardTerm.create({
         person: count,
         organization: org.id || 1,
-        dateFrom: new Date(),
-        dateTo: new Date(),
+        dateFrom: new Date(2003, count % 11, (count % 27) + 1),
+        dateTo: new Date(2005, count % 11, (count % 27) + 1),
         source: `board term ${count} source`,
         position: `board term ${count} position`,
         compensation: count * 1000,
