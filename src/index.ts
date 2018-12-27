@@ -1,4 +1,6 @@
 import * as config from 'config';
+import * as path from 'path';
+import * as express from 'express';
 
 import { OAuth2Client } from 'google-auth-library';
 
@@ -68,6 +70,12 @@ if (!config.get('google.client_id')) {
     })
   );
 }
+
+// CSV exports
+server.express.use(
+  '/csv-exports',
+  express.static(path.resolve(__dirname, 'csv-exports'))
+);
 
 server.start(
   {

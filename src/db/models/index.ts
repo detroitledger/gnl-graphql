@@ -44,7 +44,7 @@ export interface Db {
   >;
 }
 
-export default function dbFactory(): Db {
+export function buildDbConfig(): Sequelize.Options {
   const logger = baseLogger.child({ module: 'database' });
   let dbConfig = config.get('database') as Sequelize.Options;
 
@@ -55,7 +55,7 @@ export default function dbFactory(): Db {
   if (process.env.DATABASE_URL) {
     const parsed = urlParse(process.env.DATABASE_URL);
     if (!parsed) {
-      throw new Error('cannot prase DATABASE_URL');
+      throw new Error('cannot parse DATABASE_URL');
       process.exit(1);
     }
 
@@ -69,7 +69,11 @@ export default function dbFactory(): Db {
     } as Sequelize.Options;
   }
 
-  const sequelize = new Sequelize(dbConfig);
+  return dbConfig;
+}
+
+export default function dbFactory(): Db {
+  const sequelize = new Sequelize(buildDbConfig());
 
   const db: Db = {
     sequelize,
