@@ -1,5 +1,6 @@
 import * as Sequelize from 'sequelize';
 import { GrantInstance, GrantAttributes } from './grant';
+import { NewsInstance, NewsAttributes } from './news';
 import {
   NteeOrganizationTypeInstance,
   NteeOrganizationTypeAttributes,
@@ -9,6 +10,7 @@ import {
   OrganizationTagAttributes,
 } from './organizationTag';
 import { Form990Instance, Form990Attributes } from './form990';
+import { BoardTermInstance, BoardTermAttributes } from './boardTerm';
 
 export interface OrganizationAttributes {
   id?: number;
@@ -121,13 +123,19 @@ export default (sequelize: Sequelize.Sequelize) => {
     }
   );
 
+  // Set up relations
   Organization.associate = ({
+    BoardTerm,
+    Form990,
     Grant,
+    News,
     NteeOrganizationType,
     OrganizationTag,
-    Form990,
   }: {
+    BoardTerm: Sequelize.Model<BoardTermInstance, BoardTermAttributes>;
+    Form990: Sequelize.Model<Form990Instance, Form990Attributes>;
     Grant: Sequelize.Model<GrantInstance, GrantAttributes>;
+    News: Sequelize.Model<NewsInstance, NewsAttributes>;
     NteeOrganizationType: Sequelize.Model<
       NteeOrganizationTypeInstance,
       NteeOrganizationTypeAttributes
@@ -136,8 +144,39 @@ export default (sequelize: Sequelize.Sequelize) => {
       OrganizationTagInstance,
       OrganizationTagAttributes
     >;
-    Form990: Sequelize.Model<Form990Instance, Form990Attributes>;
   }) => {
+    // @ts-ignore
+    Organization.BoardTerms = Organization.hasMany(BoardTerm, {
+      sourceKey: 'id',
+      foreignKey: 'organization',
+    });
+
+    // @ts-ignore
+    Organization.Forms990 = Organization.hasMany(Form990, {
+      sourceKey: 'ein',
+      foreignKey: 'ein',
+    });
+
+    // @ts-ignore
+    Organization.GrantsFunded = Organization.hasMany(Grant, {
+      as: 'organization_grants_funded',
+      foreignKey: 'from',
+    });
+
+    // @ts-ignore
+    Organization.GrantsReceived = Organization.hasMany(Grant, {
+      as: 'organization_grants_received',
+      foreignKey: 'to',
+    });
+
+    // @ts-ignore
+    Organization.News = Organization.belongsToMany(News, {
+      through: 'news_organizations',
+      as: 'NewsOrganizations',
+      foreignKey: 'organization_id',
+      otherKey: 'news_id',
+    });
+
     // @ts-ignore
     Organization.NteeOrganizationTypes = Organization.belongsToMany(
       NteeOrganizationType,
@@ -148,6 +187,7 @@ export default (sequelize: Sequelize.Sequelize) => {
         otherKey: 'ntee_organization_type_id',
       }
     );
+
     // @ts-ignore
     Organization.OrganizationTags = Organization.belongsToMany(
       OrganizationTag,
@@ -158,21 +198,6 @@ export default (sequelize: Sequelize.Sequelize) => {
         otherKey: 'organization_tag_id',
       }
     );
-    // @ts-ignore
-    Organization.GrantsFunded = Organization.hasMany(Grant, {
-      as: 'organization_grants_funded',
-      foreignKey: 'from',
-    });
-    // @ts-ignore
-    Organization.GrantsReceived = Organization.hasMany(Grant, {
-      as: 'organization_grants_received',
-      foreignKey: 'to',
-    });
-    // @ts-ignore
-    Organization.Forms990 = Organization.hasMany(Form990, {
-      sourceKey: 'ein',
-      foreignKey: 'ein',
-    });
   };
 
   return Organization;

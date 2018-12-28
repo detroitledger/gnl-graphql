@@ -36,6 +36,12 @@ GRANT CONNECT ON DATABASE gnl TO gnl;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO gnl;
 ```
 
+### Running imports (if you have to)
+
+```
+yarn tsc && node dist/scripts/tagImporter.js
+```
+
 ## Seed data & integration tests
 
 Seed data generators are available at `src/db/seeders`. Currently the `test-data` seeder generates a hundred tags for each tag type, a thousand organizations, ten thousand grants, and six thousand rows of IRS data.

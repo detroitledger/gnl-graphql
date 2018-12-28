@@ -1,6 +1,7 @@
 import * as Sequelize from 'sequelize';
 
 import { OrganizationInstance, OrganizationAttributes } from './organization';
+import { NewsInstance, NewsAttributes } from './news';
 import {
   NteeGrantTypeInstance,
   NteeGrantTypeAttributes,
@@ -113,6 +114,7 @@ export default (sequelize: Sequelize.Sequelize) => {
     NteeGrantType,
     GrantTag,
     Organization,
+    News,
   }: {
     NteeGrantType: Sequelize.Model<
       NteeGrantTypeInstance,
@@ -120,6 +122,7 @@ export default (sequelize: Sequelize.Sequelize) => {
     >;
     GrantTag: Sequelize.Model<GrantTagInstance, GrantTagAttributes>;
     Organization: Sequelize.Model<OrganizationInstance, OrganizationAttributes>;
+    News: Sequelize.Model<NewsInstance, NewsAttributes>;
   }) => {
     // @ts-ignore
     Grant.GrantTags = Grant.belongsToMany(GrantTag, {
@@ -146,6 +149,13 @@ export default (sequelize: Sequelize.Sequelize) => {
       as: 'grant_organization_recipient',
       foreignKey: 'to',
       targetKey: 'id',
+    });
+    // @ts-ignore
+    Grant.News = Grant.belongsToMany(News, {
+      through: 'news_grants',
+      as: 'NewsGrants',
+      foreignKey: 'grant_id',
+      otherKey: 'news_id',
     });
   };
 

@@ -4,27 +4,30 @@ import { parse as urlParse } from 'url';
 
 import { logger as baseLogger } from '../../logger';
 
+import boardTermFactory, * as boardTerm from './boardTerm';
 import form990Factory, * as form990 from './form990';
 import grantTagFactory, * as grantTag from './grantTag';
 import organizationTagFactory, * as organizationTag from './organizationTag';
 import nteeGrantTypeFactory, * as nteeGrantType from './nteeGrantType';
 import nteeOrganizationTypeFactory, * as nteeOrganizationType from './nteeOrganizationType';
 import grantFactory, * as grant from './grant';
+import newsFactory, * as news from './news';
 import organizationFactory, * as organization from './organization';
 import organizationMetaFactory, * as organizationMeta from './organizationMeta';
+import personFactory, * as person from './person';
 
 export interface Db {
-  sequelize: Sequelize.Sequelize;
-  Sequelize: Sequelize.SequelizeStatic;
+  BoardTerm: Sequelize.Model<
+    boardTerm.BoardTermInstance,
+    boardTerm.BoardTermAttributes
+  >;
   Form990: Sequelize.Model<form990.Form990Instance, form990.Form990Attributes>;
+  Grant: Sequelize.Model<grant.GrantInstance, grant.GrantAttributes>;
   GrantTag: Sequelize.Model<
     grantTag.GrantTagInstance,
     grantTag.GrantTagAttributes
   >;
-  OrganizationTag: Sequelize.Model<
-    organizationTag.OrganizationTagInstance,
-    organizationTag.OrganizationTagAttributes
-  >;
+  News: Sequelize.Model<news.NewsInstance, news.NewsAttributes>;
   NteeGrantType: Sequelize.Model<
     nteeGrantType.NteeGrantTypeInstance,
     nteeGrantType.NteeGrantTypeAttributes
@@ -33,7 +36,6 @@ export interface Db {
     nteeOrganizationType.NteeOrganizationTypeInstance,
     nteeOrganizationType.NteeOrganizationTypeAttributes
   >;
-  Grant: Sequelize.Model<grant.GrantInstance, grant.GrantAttributes>;
   Organization: Sequelize.Model<
     organization.OrganizationInstance,
     organization.OrganizationAttributes
@@ -42,6 +44,13 @@ export interface Db {
     organizationMeta.OrganizationMetaInstance,
     organizationMeta.OrganizationMetaAttributes
   >;
+  OrganizationTag: Sequelize.Model<
+    organizationTag.OrganizationTagInstance,
+    organizationTag.OrganizationTagAttributes
+  >;
+  Person: Sequelize.Model<person.PersonInstance, person.PersonAttributes>;
+  sequelize: Sequelize.Sequelize;
+  Sequelize: Sequelize.SequelizeStatic;
 }
 
 export function buildDbConfig(): Sequelize.Options {
@@ -76,16 +85,19 @@ export default function dbFactory(): Db {
   const sequelize = new Sequelize(buildDbConfig());
 
   const db: Db = {
-    sequelize,
-    Sequelize,
+    BoardTerm: boardTermFactory(sequelize),
     Form990: form990Factory(sequelize),
+    Grant: grantFactory(sequelize),
     GrantTag: grantTagFactory(sequelize),
-    OrganizationTag: organizationTagFactory(sequelize),
+    News: newsFactory(sequelize),
     NteeGrantType: nteeGrantTypeFactory(sequelize),
     NteeOrganizationType: nteeOrganizationTypeFactory(sequelize),
-    Grant: grantFactory(sequelize),
     Organization: organizationFactory(sequelize),
     OrganizationMeta: organizationMetaFactory(sequelize),
+    OrganizationTag: organizationTagFactory(sequelize),
+    Person: personFactory(sequelize),
+    sequelize,
+    Sequelize,
   };
 
   Object.values(db.sequelize.models).forEach(

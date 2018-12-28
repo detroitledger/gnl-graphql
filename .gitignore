@@ -38,3 +38,7 @@ node_modules
 
 # Compiled from typescript
 dist
+
+tmp
+
+config/local.toml

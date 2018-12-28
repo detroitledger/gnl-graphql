@@ -85,6 +85,31 @@ export default function createServer(db: Db): GraphQLServer {
     fields: attributeFields(db.NteeOrganizationType, { exclude: ['id'] }),
   });
 
+  const personType = new GraphQLObjectType({
+    name: 'Person',
+    description: 'A person related to organizations through board terms',
+    fields: attributeFields(db.Person, { exclude: ['id'] }),
+  });
+
+  const boardTermType = new GraphQLObjectType({
+    name: 'BoardTerm',
+    description:
+      'A board term represents time spent by a person serving on the board of an organization',
+    fields: {
+      ...attributeFields(db.BoardTerm, { exclude: ['id'] }),
+      person: {
+        type: personType,
+        // @ts-ignore
+        resolve: resolver(db.BoardTerm.Person),
+      },
+      organization: {
+        type: shallowOrganizationType,
+        // @ts-ignore
+        resolve: resolver(db.BoardTerm.Organization),
+      },
+    },
+  });
+
   const grantType = new GraphQLObjectType({
     name: 'Grant',
     description: 'A grant, duh',
@@ -120,11 +145,34 @@ export default function createServer(db: Db): GraphQLServer {
     fields: attributeFields(db.Form990),
   });
 
+  const newsType = new GraphQLObjectType({
+    name: 'News',
+    description: 'News related to one or many organizations',
+    fields: {
+      ...attributeFields(db.News, { exclude: ['id'] }),
+      organizations: {
+        type: new GraphQLList(shallowOrganizationType),
+        // @ts-ignore
+        resolve: resolver(db.News.Organizations),
+      },
+      grants: {
+        type: new GraphQLList(grantType),
+        // @ts-ignore
+        resolve: resolver(db.News.Grants),
+      },
+    },
+  });
+
   const organizationType = new GraphQLObjectType({
     name: 'Organization',
     description: 'An organization, duh',
     fields: {
       ...attributeFields(db.Organization, { exclude: ['id'] }),
+      boardTerms: {
+        type: new GraphQLList(boardTermType),
+        // @ts-ignore
+        resolve: resolver(db.Organization.BoardTerms),
+      },
       grantsFunded: {
         type: new GraphQLList(grantType),
         // @ts-ignore
@@ -139,6 +187,11 @@ export default function createServer(db: Db): GraphQLServer {
         type: new GraphQLList(form990Type),
         // @ts-ignore
         resolve: resolver(db.Organization.Forms990),
+      },
+      news: {
+        type: new GraphQLList(newsType),
+        // @ts-ignore
+        resolve: resolver(db.Organization.News),
       },
       nteeOrganizationTypes: {
         type: new GraphQLList(nteeOrganizationTypeType),
@@ -204,6 +257,14 @@ export default function createServer(db: Db): GraphQLServer {
               primaryKeyAttributes: ['uuid'],
             }),
             resolve: resolver(db.Organization),
+          },
+          news: {
+            type: new GraphQLList(newsType),
+            args: {
+              ...defaultListArgs(),
+              ...defaultArgs(db.News),
+            },
+            resolve: resolver(db.News),
           },
           organizations: {
             type: new GraphQLList(organizationType),
