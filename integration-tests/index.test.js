@@ -7,8 +7,7 @@ import dbFactory, * as models from '../dist/db/models';
 import * as orgsWithGrants from './test-queries/orgs-with-grants';
 import * as someNews from './test-queries/some-news';
 import * as boardTerms from './test-queries/board-terms';
-
-let context = {};
+import * as moreMeta from './test-queries/more-meta';
 
 const createServerInstance = async () => {
   const db = dbFactory();
@@ -48,6 +47,16 @@ test('provides board term data with an organization', async () => {
   const res = await request(uri, boardTerms.query);
 
   expect(res).toEqual(boardTerms.expected.data);
+
+  instance.close();
+});
+
+test('provides new fields in meta response', async () => {
+  const { uri, instance } = await createServerInstance();
+
+  const res = await request(uri, moreMeta.query);
+
+  expect(res).toEqual(moreMeta.expected.data);
 
   instance.close();
 });
