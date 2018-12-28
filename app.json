@@ -1,6 +1,7 @@
 {
   "name": "gnl-graphql",
   "scripts": {
+    "postdeploy": "yarn tsc && yarn sequelize db:migrate && (yarn sequelize db:seed:all | yarn bunyan -l error)"
   },
   "env": {
     "GOOGLE_CLIENT_ID": {
