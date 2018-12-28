@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "graphql server for detroit ledger",
   "scripts": {
-    "start": "tsc && node dist/index.js",
+    "start": "tsc && node dist/scripts/createCsvs.js && node dist/index.js",
     "pretest": "./testrunners/build-lint.sh && ./testrunners/db-setup.sh && ./testrunners/db-seed.sh",
     "test": "jest integration-tests --forceExit",
     "precommit-test-only": "./testrunners/build-lint.sh",
@@ -24,6 +24,7 @@
     "graphql-yoga": "1.16.8",
     "lodash": "^4.17.4",
     "pg": "^6.1.0",
+    "pg-copy-streams": "1.2.0",
     "sequelize": "4.38.0",
     "sqlite3": "^4.0.2",
     "toml": "^2.3.3"
