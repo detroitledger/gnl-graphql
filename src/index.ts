@@ -73,7 +73,7 @@ if (!config.get('google.client_id')) {
 
 // CSV exports
 server.express.use(
-  '/csv-exports',
+  '/exports/csv',
   express.static(path.resolve(__dirname, 'csv-exports'))
 );
 
