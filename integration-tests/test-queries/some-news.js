@@ -39,14 +39,7 @@ export const expected = {
             name: 'test organization 1',
           },
         ],
-        grants: [
-          {
-            description: 'grant 0 description',
-          },
-          {
-            description: 'grant 0 description',
-          },
-        ],
+        grants: [],
         link: 'news 0 link',
       },
       {
@@ -60,14 +53,7 @@ export const expected = {
             name: 'test organization 1',
           },
         ],
-        grants: [
-          {
-            description: 'grant 0 description',
-          },
-          {
-            description: 'grant 0 description',
-          },
-        ],
+        grants: [],
         link: 'news 1 link',
       },
       {
@@ -84,17 +70,7 @@ export const expected = {
             name: 'test organization 2',
           },
         ],
-        grants: [
-          {
-            description: 'grant 0 description',
-          },
-          {
-            description: 'grant 0 description',
-          },
-          {
-            description: 'grant 0 description',
-          },
-        ],
+        grants: [],
         link: 'news 0 link',
       },
       {
@@ -111,17 +87,7 @@ export const expected = {
             name: 'test organization 2',
           },
         ],
-        grants: [
-          {
-            description: 'grant 0 description',
-          },
-          {
-            description: 'grant 0 description',
-          },
-          {
-            description: 'grant 0 description',
-          },
-        ],
+        grants: [],
         link: 'news 1 link',
       },
     ],

@@ -39,8 +39,8 @@ export const up = async (
 ) => {
   const db = dbFactory() as models.Db;
 
-  const aFew = [...Array(5).keys()];
-  const aBunch = [...Array(30).keys()];
+  const aFew = [...Array(10).keys()];
+  const aBunch = [...Array(100).keys()];
 
   for (let organizationTag of aFew.map(fakeOrganizationTag)) {
     await db.OrganizationTag.create(organizationTag);
@@ -69,7 +69,10 @@ export const up = async (
     const orgTags = await db.OrganizationTag.findAll({
       where: {
         id: {
-          [Sequelize.Op.between]: [1, count],
+          [Sequelize.Op.between]: [
+            Math.floor(count / 10),
+            Math.floor(count / 10) + 3,
+          ],
         },
       },
     });
@@ -81,7 +84,10 @@ export const up = async (
     const orgNtees = await db.NteeOrganizationType.findAll({
       where: {
         id: {
-          [Sequelize.Op.between]: [1, count],
+          [Sequelize.Op.between]: [
+            Math.floor(count / 10),
+            Math.floor(count / 10) + 3,
+          ],
         },
       },
     });
@@ -98,26 +104,32 @@ export const up = async (
     // in each org, create c grants from and c grants to
     // other org is c-1 each grant
     // in each grant, associate with c tags and ntee codes
-    for (let grant of [...Array(count).keys()].map(fakeGrant)) {
-      if (count !== grant.to + 1) {
+    let grantNum = Math.floor(count / 10);
+    for (let grant of [...Array(grantNum).keys()].map(fakeGrant)) {
+      const otherOrgId = count - grantNum;
+
+      if (otherOrgId > 0 && count !== otherOrgId) {
         let createdGrantFrom = await db.Grant.create({
           ...grant,
-          amount: count * 10,
+          amount: grantNum * 10,
           from: count,
-          to: grant.to + 1,
+          to: otherOrgId,
         });
 
         let createdGrantTo = await db.Grant.create({
           ...grant,
-          amount: count * 10,
+          amount: grantNum * 10,
           to: count,
-          from: grant.from + 1,
+          from: otherOrgId,
         });
 
         const grantTags = await db.GrantTag.findAll({
           where: {
             id: {
-              [Sequelize.Op.between]: [1, count],
+              [Sequelize.Op.between]: [
+                Math.floor(grantNum / 10),
+                Math.floor(grantNum / 10) + 3,
+              ],
             },
           },
         });
@@ -133,7 +145,10 @@ export const up = async (
         const grantNtees = await db.NteeGrantType.findAll({
           where: {
             id: {
-              [Sequelize.Op.between]: [1, count],
+              [Sequelize.Op.between]: [
+                Math.floor(grantNum / 10),
+                Math.floor(grantNum / 10) + 3,
+              ],
             },
           },
         });
@@ -192,7 +207,7 @@ export const up = async (
         id: {
           [Sequelize.Op.between]: [
             Math.floor(count / 10),
-            Math.floor(count / 10 + 10),
+            Math.floor(count / 10 + 3),
           ],
         },
       },
