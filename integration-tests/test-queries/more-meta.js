@@ -3,7 +3,7 @@ query foo {
   organizationMetas(
     limit: 2
     offset: 1
-    orderByMulti: [["countGrantsTo", "DESC"]]
+    orderByMulti: [["countGrantsTo", "DESC"], ["id", "ASC"]]
   ) {
     countGrantsTo
     countGrantsFrom

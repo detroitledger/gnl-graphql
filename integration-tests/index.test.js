@@ -17,6 +17,7 @@ const createServerInstance = async () => {
 
   return {
     instance,
+    db,
     uri: `http://127.0.0.1:${port}`,
   };
 };
@@ -57,6 +58,81 @@ test('provides new fields in meta response', async () => {
   const res = await request(uri, moreMeta.query);
 
   expect(res).toEqual(moreMeta.expected.data);
+
+  instance.close();
+});
+
+test('organization_meta updates automatically', async () => {
+  // Arange
+  const { uri, instance, db } = await createServerInstance();
+  const query = `
+query foo {
+	giver: organizationMetas(id: 3) {
+		countGrantsTo
+		countGrantsFrom
+		countDistinctFunders
+		countDistinctRecipients
+	}
+	receiver: organizationMetas(id: 91) {
+		countGrantsTo
+		countGrantsFrom
+		countDistinctFunders
+		countDistinctRecipients
+	}
+}`;
+
+  const resBefore = await request(uri, query);
+
+  // Act
+  const newGrant = await db.Grant.create({
+    to: 91,
+    from: 3,
+    dateFrom: new Date(2010, 6, 17),
+    dateTo: new Date(2011, 6, 17),
+    amount: 138000,
+    source: 'hey',
+  });
+  const resAfter = await request(uri, query);
+
+  await newGrant.destroy();
+
+  // Assert
+  expect(resBefore).toEqual({
+    giver: [
+      {
+        countGrantsTo: 0,
+        countGrantsFrom: 0,
+        countDistinctFunders: 0,
+        countDistinctRecipients: 0,
+      },
+    ],
+    receiver: [
+      {
+        countGrantsTo: 17,
+        countGrantsFrom: 17,
+        countDistinctFunders: 17,
+        countDistinctRecipients: 17,
+      },
+    ],
+  });
+  expect(resAfter).toEqual({
+    giver: [
+      {
+        countGrantsTo: 0,
+        countGrantsFrom: 1,
+        countDistinctFunders: 0,
+        countDistinctRecipients: 1,
+      },
+    ],
+    receiver: [
+      {
+        countGrantsTo: 18,
+        countGrantsFrom: 17,
+        countDistinctFunders: 18,
+        countDistinctRecipients: 17,
+      },
+    ],
+  });
 
   instance.close();
 });
