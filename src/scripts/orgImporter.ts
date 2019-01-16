@@ -30,7 +30,7 @@ export const orgs = require(`${DATADIR}/orgs.json`).orgs;
 const importOrg = async drupalOrg => {
   const cleansed = {
     name: drupalOrg.title,
-    ein: drupalOrg.field_ein,
+    ein: drupalOrg.field_ein || null,
     duns: drupalOrg.field_duns != 0 ? drupalOrg.field_duns : null,
     stateCorpId: drupalOrg.field_state_corp_id
       ? drupalOrg.field_state_corp_id.value
@@ -116,4 +116,10 @@ export const doImport = async () => {
   }
 };
 
-doImport();
+doImport()
+  .then(() => process.exit(0))
+  .catch(e => {
+    console.error('ERROR');
+    console.error(e);
+    process.exit(1);
+  });
