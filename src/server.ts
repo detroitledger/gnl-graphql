@@ -64,6 +64,11 @@ export default function createServer(db: Db): GraphQLServer {
 
   // Arguments
   const grantTagArgs = ledgerListArgs(db.GrantTag, ['total']);
+  const nteeGrantTypeArgs = ledgerListArgs(db.NteeGrantType, ['total']);
+  const nteeOrganizationTypeArgs = ledgerListArgs(db.NteeOrganizationType, [
+    'totalFunded',
+    'totalReceived',
+  ]);
   const organizationTagArgs = ledgerListArgs(db.OrganizationTag, [
     'totalFunded',
     'totalReceived',
@@ -91,23 +96,27 @@ export default function createServer(db: Db): GraphQLServer {
     description: 'Tag associated with a grant',
     fields: {
       ...attributeFields(db.GrantTag, { exclude: ['id'] }),
-      total: {
-        type: GraphQLBigInt,
-        //resolve: source => source.dataValues.total,
-      },
+      total: { type: GraphQLBigInt },
     },
   });
 
   const nteeGrantTypeType = new GraphQLObjectType({
     name: 'NteeGrantType',
     description: 'NTEE classification of a grant',
-    fields: attributeFields(db.NteeGrantType, { exclude: ['id'] }),
+    fields: {
+      ...attributeFields(db.NteeGrantType, { exclude: ['id'] }),
+      total: { type: GraphQLBigInt },
+    },
   });
 
   const nteeOrganizationTypeType = new GraphQLObjectType({
     name: 'NteeOrganizationType',
     description: 'NTEE classification of an organization',
-    fields: attributeFields(db.NteeOrganizationType, { exclude: ['id'] }),
+    fields: {
+      ...attributeFields(db.NteeOrganizationType, { exclude: ['id'] }),
+      totalFunded: { type: GraphQLBigInt },
+      totalReceived: { type: GraphQLBigInt },
+    },
   });
 
   const personType = new GraphQLObjectType({
@@ -152,8 +161,8 @@ export default function createServer(db: Db): GraphQLServer {
       },
       nteeGrantTypes: {
         type: new GraphQLList(nteeGrantTypeType),
-        // @ts-ignore
-        resolve: resolver(db.Grant.NteeGrantTypes),
+        args: nteeGrantTypeArgs,
+        resolve: nteeGrantTypeResolver(db, { limitToGrantId: true }),
       },
       grantTags: {
         type: new GraphQLList(grantTagType),
@@ -220,8 +229,10 @@ export default function createServer(db: Db): GraphQLServer {
       },
       nteeOrganizationTypes: {
         type: new GraphQLList(nteeOrganizationTypeType),
-        // @ts-ignore
-        resolve: resolver(db.Organization.NteeOrganizationTypes),
+        args: nteeOrganizationTypeArgs,
+        resolve: nteeOrganizationTypeResolver(db, {
+          limitToOrganizationId: true,
+        }),
       },
       organizationTags: {
         type: new GraphQLList(organizationTagType),
@@ -341,10 +352,20 @@ export default function createServer(db: Db): GraphQLServer {
             },
             resolve: resolver(db.Grant),
           },
+          nteeOrganizationTypes: {
+            type: new GraphQLList(nteeOrganizationTypeType),
+            args: nteeOrganizationTypeArgs,
+            resolve: nteeOrganizationTypeResolver(db),
+          },
           organizationTags: {
             type: new GraphQLList(organizationTagType),
             args: organizationTagArgs,
             resolve: organizationTagResolver(db),
+          },
+          nteeGrantTypes: {
+            type: new GraphQLList(nteeGrantTypeType),
+            args: nteeGrantTypeArgs,
+            resolve: nteeGrantTypeResolver(db),
           },
           grantTags: {
             type: new GraphQLList(grantTagType),
@@ -426,6 +447,49 @@ OFFSET :offset`,
   return results;
 };
 
+const nteeOrganizationTypeResolver = (
+  db,
+  resolverOpts: OrganizationTagResolverOptions = defaultOrganizationTagResolverOptions
+) => async (
+  opts,
+  { limit, offset, orderBy, orderByDirection, uuid = null },
+  context,
+  info
+) => {
+  const { fieldNodes } = info;
+  const ast = simplifyAST(fieldNodes[0], info);
+
+  let where = '';
+  // Fetching only organization tags related to a specific organization
+  if (resolverOpts.limitToOrganizationId) {
+    where = `WHERE oot.organization_id=${escape(opts.dataValues.id)}`;
+  } else {
+    where = uuid ? `WHERE ot.uuid = ${escape(uuid)}` : '';
+  }
+
+  const results = await db.sequelize.query(
+    `SELECT ot.id, ot.uuid, ot.name, ot.code, ot.description, SUM(gf.amount) as "totalFunded", SUM(gr.amount) as "totalReceived"
+FROM ntee_organization_type ot
+LEFT JOIN organization_ntee_organization_type oot ON ot.id=oot.ntee_organization_type_id
+LEFT JOIN "grant" gf ON gf.from=oot.organization_id
+LEFT JOIN "grant" gr ON gr.to=oot.organization_id
+${where}
+GROUP BY ot.id
+ORDER BY "${orderBy}" ${orderByDirection}
+LIMIT :limit
+OFFSET :offset`,
+    {
+      type: db.Sequelize.QueryTypes.SELECT,
+      replacements: {
+        limit: Math.min(limit, MAX_LIMIT),
+        offset,
+      },
+    }
+  );
+
+  return results;
+};
+
 const grantTagResolver = (
   db,
   resolverOpts: GrantTagResolverOptions = defaultGrantTagResolverOptions
@@ -450,6 +514,48 @@ const grantTagResolver = (
     `SELECT gt.id, gt.uuid, gt.name, gt.description, SUM(g.amount) as total
 FROM grant_tag gt
 LEFT JOIN grant_grant_tag ggt ON gt.id=ggt.grant_tag_id
+LEFT JOIN "grant" g ON ggt.grant_id=g.id
+${where}
+GROUP BY gt.id
+ORDER BY "${orderBy}" ${orderByDirection}
+LIMIT :limit
+OFFSET :offset`,
+    {
+      type: db.Sequelize.QueryTypes.SELECT,
+      replacements: {
+        limit: Math.min(limit, MAX_LIMIT),
+        offset,
+      },
+    }
+  );
+
+  return results;
+};
+
+const nteeGrantTypeResolver = (
+  db,
+  resolverOpts: GrantTagResolverOptions = defaultGrantTagResolverOptions
+) => async (
+  opts,
+  { limit, offset, orderBy, orderByDirection, uuid = null },
+  context,
+  info
+) => {
+  const { fieldNodes } = info;
+  const ast = simplifyAST(fieldNodes[0], info);
+
+  let where = '';
+  // Fetching only grant tags related to a specific grant
+  if (resolverOpts.limitToGrantId) {
+    where = `WHERE g.id=${escape(opts.dataValues.id)}`;
+  } else {
+    where = uuid ? `WHERE gt.uuid = ${escape(uuid)}` : '';
+  }
+
+  const results = await db.sequelize.query(
+    `SELECT gt.id, gt.uuid, gt.name, gt.code, gt.description, SUM(g.amount) as total
+FROM ntee_grant_type gt
+LEFT JOIN grant_ntee_grant_type ggt ON gt.id=ggt.ntee_grant_type_id
 LEFT JOIN "grant" g ON ggt.grant_id=g.id
 ${where}
 GROUP BY gt.id
