@@ -2187,10 +2187,10 @@ data-urls@^1.0.0:
     whatwg-mimetype "^2.2.0"
     whatwg-url "^7.0.0"
 
-dataloader-sequelize@1.7.6:
-  version "1.7.6"
-  resolved "https://registry.yarnpkg.com/dataloader-sequelize/-/dataloader-sequelize-1.7.6.tgz#5220708434425e40b703b51982aed806bbb3d0d3"
-  integrity sha512-inml9XUwrUvCn4Of8yQ+x3OGnaavhRovYK+9v21xAelmXr7zKQSCEp+t+QzKASVvR4iizCLkiP8VUMk5ad4nMA==
+dataloader-sequelize@1.7.7:
+  version "1.7.7"
+  resolved "https://registry.yarnpkg.com/dataloader-sequelize/-/dataloader-sequelize-1.7.7.tgz#54ad68babc61c99e938d57536898be26e8524ac6"
+  integrity sha512-+YPw716p0SZceV0E630fB3WBG/Jz8vUAf2yr0j3Kek+AioWmYJ2/ieoF5IvAL3x/oicJK/ocHqEHo0aTnbzdjw==
   dependencies:
     dataloader "^1.2.0"
     lodash "^4.15.0"

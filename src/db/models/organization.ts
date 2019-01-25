@@ -23,7 +23,7 @@ export interface OrganizationAttributes {
   // org tags multi
   description?: string;
   address?: Address;
-  links?: [Link];
+  links?: Link[];
   founded?: Date;
   dissolved?: Date;
   legacyData?: LegacyData;
