@@ -596,7 +596,7 @@ const ledgerListArgs = (
         )
       ),
     }),
-    defaultValue: 'uuid',
+    defaultValue: 'id',
     description: 'sort results by given field',
   },
   orderByDirection: {
@@ -607,7 +607,7 @@ const ledgerListArgs = (
         DESC: { value: 'DESC NULLS LAST' },
       },
     }),
-    defaultValue: 'DESC NULLS LAST',
+    defaultValue: 'ASC NULLS LAST',
     description: 'sort direction',
   },
   limit: {
