@@ -5,6 +5,10 @@ import { OrganizationInstance, OrganizationAttributes } from './organization';
 export interface OrganizationMetaAttributes {
   id?: number;
   uuid: string;
+  countGrantsFrom: number;
+  countGrantsTo: number;
+  countDistinctFunders: number;
+  countDistinctRecipients: number;
   totalReceived: number;
   totalFunded: number;
   grantdatesStart: Date;
@@ -25,6 +29,22 @@ export default (sequelize: Sequelize.Sequelize) => {
     {
       uuid: {
         type: Sequelize.UUID,
+      },
+      countGrantsFrom: {
+        type: Sequelize.INTEGER,
+        field: 'count_grants_from',
+      },
+      countGrantsTo: {
+        type: Sequelize.INTEGER,
+        field: 'count_grants_to',
+      },
+      countDistinctFunders: {
+        type: Sequelize.INTEGER,
+        field: 'count_distinct_funders',
+      },
+      countDistinctRecipients: {
+        type: Sequelize.INTEGER,
+        field: 'count_distinct_recipients',
       },
       totalReceived: {
         type: Sequelize.BIGINT,

@@ -1,5 +1,5 @@
 export const query = `
-query news {
+query boardterms {
   organizations(limit: 1) {
     name
     boardTerms {

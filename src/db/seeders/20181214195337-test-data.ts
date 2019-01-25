@@ -13,6 +13,7 @@ import { NteeOrganizationTypeAttributes } from '../models/nteeOrganizationType';
 import { NteeGrantTypeAttributes } from '../models/nteeGrantType';
 import { PersonAttributes } from '../models/person';
 import { BoardTermAttributes } from '../models/boardTerm';
+import { NewsAttributes } from '../models/news';
 
 import {
   OrganizationAttributes,
@@ -38,99 +39,39 @@ export const up = async (
 ) => {
   const db = dbFactory() as models.Db;
 
+  const tagsToCreate = 3;
   const aFew = [...Array(10).keys()];
   const aBunch = [...Array(100).keys()];
-  const aWholeLot = [...Array(1000).keys()];
 
-  for (let organizationTag of aFew.map(
-    i =>
-      ({
-        name: `test organization tag ${i}`,
-        description: `test organization tag ${i} description`,
-        drupalId: i,
-      } as OrganizationTagAttributes)
-  )) {
+  for (let organizationTag of aFew.map(fakeOrganizationTag)) {
     await db.OrganizationTag.create(organizationTag);
   }
 
-  for (let grantTag of aFew.map(
-    i =>
-      ({
-        name: `test grant tag ${i}`,
-        description: `test grant tag ${i} description`,
-        drupalId: i,
-      } as GrantTagAttributes)
-  )) {
+  for (let grantTag of aFew.map(fakeGrantTag)) {
     await db.GrantTag.create(grantTag);
   }
 
-  for (let nteeOrganizationType of aFew.map(
-    i =>
-      ({
-        name: `test ntee organization type ${i}`,
-        code: `test ntee organization type code ${i}`,
-        description: `test ntee organization type ${i} description`,
-        drupalId: i,
-      } as NteeOrganizationTypeAttributes)
-  )) {
+  for (let nteeOrganizationType of aFew.map(fakeNteeOrganizationType)) {
     await db.NteeOrganizationType.create(nteeOrganizationType);
   }
 
-  for (let nteeGrantType of aFew.map(
-    i =>
-      ({
-        name: `test ntee grant type ${i}`,
-        description: `test ntee grant type ${i} description`,
-        drupalId: i,
-      } as NteeGrantTypeAttributes)
-  )) {
+  for (let nteeGrantType of aFew.map(fakeNteeGrantType)) {
     await db.NteeGrantType.create(nteeGrantType);
   }
 
-  let createdOrgs: OrganizationInstance[] = [];
-  let createdGrants: GrantInstance[] = [];
-
-  for (let organization of aBunch.map(
-    i =>
-      ({
-        name: `test organization ${i}`,
-        ein: `${i}`,
-        duns: `${i}`,
-        stateCorpId: `${i}`,
-        description: `test organization ${i} description!`,
-        address: {
-          postalCode: `${i}`,
-        } as Address,
-        links: [
-          {
-            description: 'a link',
-            url: `ftp://${i}`,
-          },
-          {
-            description: 'another link',
-            url: `gopher://${i}`,
-          },
-        ] as Link[],
-        founded: new Date(2000, i % 11, (i % 27) + 1),
-        dissolved: new Date(2001, i % 11, (i % 27) + 1),
-        legacyData: {
-          drupalId: i,
-        } as OrganizationLegacyData,
-        publicFunder: !!(i % 2),
-      } as OrganizationAttributes)
-  )) {
+  // create a bunch of orgs
+  for (let organization of aBunch.map(fakeOrganization)) {
     const createdOrg = await db.Organization.create(organization);
 
-    const count = parseInt(createdOrg.ein || '1');
+    const count = createdOrg.id || 1;
 
-    createdOrgs[count] = createdOrg;
-
+    // in each org, associate with tagsToCreate tags and ntee codes
     const orgTags = await db.OrganizationTag.findAll({
       where: {
-        drupalId: {
+        id: {
           [Sequelize.Op.between]: [
             Math.floor(count / 10),
-            Math.floor(count / 10 + 10),
+            Math.floor(count / 10) + tagsToCreate,
           ],
         },
       },
@@ -142,10 +83,10 @@ export const up = async (
 
     const orgNtees = await db.NteeOrganizationType.findAll({
       where: {
-        drupalId: {
+        id: {
           [Sequelize.Op.between]: [
             Math.floor(count / 10),
-            Math.floor(count / 10 + 10),
+            Math.floor(count / 10) + tagsToCreate,
           ],
         },
       },
@@ -154,128 +95,110 @@ export const up = async (
     if (createdOrg.setOrganizationNteeOrganizationType) {
       await createdOrg.setOrganizationNteeOrganizationType(orgNtees);
     }
-  }
 
-  for (let form990 of aBunch.map(
-    i =>
-      ({
-        ein: `${i}`,
-        filing_type: '990',
-        total_expenses: i * 100,
-        total_revenue: i * 200,
-        total_liabilities: i * 300,
-        total_fundraising_expenses: i * 400,
-        net_assets: i * 500,
-      } as Form990Attributes)
-  )) {
+    // Make a few forms 990 for this org
     for (let year of [1990, 1991, 1992, 1993, 1994, 1995]) {
-      await db.Form990.create({
-        ...form990,
-        source: `${year} 990`,
-        tax_period: `${year * 100 + 6}`,
-        irs_year: year,
+      await db.Form990.create(fakeForm990(count, year));
+    }
+
+    // in each org, create c grants from and c grants to
+    // other org is c-1 each grant
+    // in each grant, associate with tagsToCreate tags and ntee codes
+    let grantNum = Math.floor(count / 10);
+    for (let grant of [...Array(grantNum).keys()].map(fakeGrant)) {
+      // grant.to and grant.from are equal to the current grant's count
+      const otherOrgId = count - grant.to;
+
+      if (otherOrgId > 0 && count !== otherOrgId) {
+        let createdGrantFrom = await db.Grant.create({
+          ...grant,
+          amount: grantNum * 10,
+          from: count,
+          to: otherOrgId,
+        });
+
+        let createdGrantTo = await db.Grant.create({
+          ...grant,
+          amount: grantNum * 10,
+          to: count,
+          from: otherOrgId,
+        });
+
+        const grantTags = await db.GrantTag.findAll({
+          where: {
+            id: {
+              [Sequelize.Op.between]: [
+                Math.floor(grantNum / 10),
+                Math.floor(grantNum / 10) + tagsToCreate,
+              ],
+            },
+          },
+        });
+
+        if (
+          createdGrantFrom.setGrantGrantTag &&
+          createdGrantTo.setGrantGrantTag
+        ) {
+          await createdGrantFrom.setGrantGrantTag(grantTags);
+          await createdGrantTo.setGrantGrantTag(grantTags);
+        }
+
+        const grantNtees = await db.NteeGrantType.findAll({
+          where: {
+            id: {
+              [Sequelize.Op.between]: [
+                Math.floor(grantNum / 10),
+                Math.floor(grantNum / 10) + tagsToCreate,
+              ],
+            },
+          },
+        });
+
+        if (
+          createdGrantFrom.setGrantNteeGrantType &&
+          createdGrantTo.setGrantNteeGrantType
+        ) {
+          await createdGrantFrom.setGrantNteeGrantType(grantNtees);
+          await createdGrantTo.setGrantNteeGrantType(grantNtees);
+        }
+      }
+    }
+
+    // Create count news entries related to this org
+    for (let news of [...Array(count).keys()].map(fakeNews)) {
+      let createdNews = await db.News.create({
+        ...news,
+        title: `news for organization ${count}`,
       });
+
+      const newsOrgs = await db.Organization.findAll({
+        where: {
+          id: {
+            [Sequelize.Op.between]: [count - 10, count],
+          },
+        },
+      });
+
+      if (createdNews.setNewsOrganizations && newsOrgs.length > 0) {
+        await createdNews.setNewsOrganizations(newsOrgs);
+      }
+
+      const newsGrants = await db.Grant.findAll({
+        where: {
+          id: {
+            [Sequelize.Op.between]: [count - 10, count],
+          },
+        },
+      });
+
+      if (createdNews.setNewsGrants && newsGrants.length > 0) {
+        await createdNews.setNewsGrants(newsGrants);
+      }
     }
   }
 
-  for (let grant of aWholeLot.map(
-    i =>
-      ({
-        from: createdOrgs[Math.floor(i / 100) + 1].id,
-        to: createdOrgs[Math.floor(i / 100) + 2].id,
-        dateFrom: new Date(2001, i % 11, (i % 27) + 1),
-        dateTo: new Date(2010, i % 11, (i % 27) + 1),
-        amount: i,
-        source: `grant ${i} source`,
-        description: `grant ${i} description`,
-        internalNotes: `grant ${i} internal notes`,
-        legacyData: {
-          drupalId: i,
-        } as GrantLegacyData,
-        federalAwardId: `grant ${i} federal award id`,
-      } as GrantAttributes)
-  )) {
-    let createdGrant = await db.Grant.create(grant);
-
-    const count = createdGrant.amount || 1;
-
-    createdGrants[count] = createdGrant;
-
-    const grantTags = await db.GrantTag.findAll({
-      where: {
-        drupalId: {
-          [Sequelize.Op.between]: [
-            Math.floor(count / 10),
-            Math.floor(count / 10 + 10),
-          ],
-        },
-      },
-    });
-
-    if (createdGrant.setGrantGrantTag) {
-      await createdGrant.setGrantGrantTag(grantTags);
-    }
-
-    const grantNtees = await db.NteeGrantType.findAll({
-      where: {
-        drupalId: {
-          [Sequelize.Op.between]: [
-            Math.floor(count / 10),
-            Math.floor(count / 10 + 10),
-          ],
-        },
-      },
-    });
-
-    if (createdGrant.setGrantNteeGrantType) {
-      await createdGrant.setGrantNteeGrantType(grantNtees);
-    }
-  }
-
-  for (let news of aBunch.map(i => ({
-    title: `news ${i} title`,
-    description: `news ${i} description`,
-    link: `news ${i} link`,
-    date: new Date(Date.UTC(2000, i % 11, (i % 27) + 1)),
-  }))) {
-    let createdNews = await db.News.create(news);
-
-    const count = createdNews.id || 1;
-
-    const newsOrgs = await db.Organization.findAll({
-      where: {
-        id: {
-          [Sequelize.Op.between]: [
-            Math.floor(count / 10),
-            Math.floor(count / 10 + 10),
-          ],
-        },
-      },
-    });
-
-    if (createdNews.setNewsOrganizations) {
-      await createdNews.setNewsOrganizations(newsOrgs);
-    }
-
-    const newsGrants = await db.Grant.findAll({
-      where: {
-        id: {
-          [Sequelize.Op.between]: [
-            Math.floor(count / 10),
-            Math.floor(count / 10 + 10),
-          ],
-        },
-      },
-    });
-
-    if (createdNews.setNewsGrants) {
-      await createdNews.setNewsGrants(newsGrants);
-    }
-  }
-
-  for (let person of aBunch.map(i => ({
-    name: `person ${i} name`,
-  }))) {
+  // Create some people & board terms.
+  for (let person of aBunch.map(fakePerson)) {
     let createdPerson = await db.Person.create(person);
 
     const count = createdPerson.id || 1;
@@ -285,22 +208,14 @@ export const up = async (
         id: {
           [Sequelize.Op.between]: [
             Math.floor(count / 10),
-            Math.floor(count / 10 + 10),
+            Math.floor(count / 10 + 3),
           ],
         },
       },
     });
 
     for (const org of orgs) {
-      await db.BoardTerm.create({
-        person: count,
-        organization: org.id || 1,
-        dateFrom: new Date(2003, count % 11, (count % 27) + 1),
-        dateTo: new Date(2005, count % 11, (count % 27) + 1),
-        source: `board term ${count} source`,
-        position: `board term ${count} position`,
-        compensation: count * 1000,
-      });
+      await db.BoardTerm.create(fakeBoardTerm(count, org.id));
     }
   }
 
@@ -326,3 +241,121 @@ export const down = async (
 
   return;
 };
+
+const fakeOrganizationTag = (i): OrganizationTagAttributes => ({
+  name: `test organization tag ${i}`,
+  description: `test organization tag ${i} description`,
+  drupalId: i,
+});
+
+const fakeGrantTag = (i): GrantTagAttributes => ({
+  name: `test grant tag ${i}`,
+  description: `test grant tag ${i} description`,
+  drupalId: i,
+});
+
+const fakeNteeOrganizationType = (i): NteeOrganizationTypeAttributes => ({
+  name: `test ntee organization type ${i}`,
+  code: `test ntee organization type code ${i}`,
+  description: `test ntee organization type ${i} description`,
+  drupalId: i,
+});
+
+const fakeNteeGrantType = (i): NteeGrantTypeAttributes => ({
+  name: `test ntee grant type ${i}`,
+  description: `test ntee grant type ${i} description`,
+  drupalId: i,
+});
+
+const fakeOrganization = (i): OrganizationAttributes => ({
+  name: `test organization ${i}`,
+  ein: `${i}`,
+  duns: `${i}`,
+  stateCorpId: `${i}`,
+  description: `test organization ${i} description!`,
+  address: {
+    postalCode: `${i}`,
+  } as Address,
+  links: [
+    {
+      description: 'a link',
+      url: `ftp://${i}`,
+    } as Link,
+    {
+      description: 'another link',
+      url: `gopher://${i}`,
+    } as Link,
+  ],
+  founded: new Date(2000, i % 11, (i % 27) + 1),
+  dissolved: new Date(2001, i % 11, (i % 27) + 1),
+  legacyData: {
+    drupalId: i,
+  } as OrganizationLegacyData,
+  publicFunder: !!(i % 2),
+});
+
+const fakeForm990 = (i, year): Form990Attributes => ({
+  ein: `${i}`,
+  source: `${i} source`,
+  org: i,
+  subseccd: `${i}`,
+  pdf: `${i}`,
+  start_year: year,
+  end_year: year,
+  irs_year: year,
+  filing_date: year,
+  tax_period: `${year * 100 + 6}`,
+  contributions_and_grants: i,
+  program_service_revenue: i,
+  investment_income: i,
+  other_revenue: i,
+  grants_paid: i,
+  benefits_paid: i,
+  compensation: i,
+  fundraising_fees: i,
+  other_expenses: i,
+  revenue_less_expenses: i,
+  total_assets: i,
+  filing_type: '990',
+  total_expenses: i * 100,
+  total_revenue: i * 200,
+  total_liabilities: i * 300,
+  total_fundraising_expenses: i * 400,
+  net_assets: i * 500,
+});
+
+const fakeGrant = (i): GrantAttributes => ({
+  from: i,
+  to: i,
+  dateFrom: new Date(2001, i % 11, (i % 27) + 1),
+  dateTo: new Date(2010, i % 11, (i % 27) + 1),
+  amount: i * 100,
+  source: `grant ${i} source`,
+  description: `grant ${i} description`,
+  internalNotes: `grant ${i} internal notes`,
+  legacyData: {
+    drupalId: i,
+  } as GrantLegacyData,
+  federalAwardId: `grant ${i} federal award id`,
+});
+
+const fakeNews = (i): NewsAttributes => ({
+  title: `news ${i} title`,
+  description: `news ${i} description`,
+  link: `news ${i} link`,
+  date: new Date(Date.UTC(2000, i % 11, (i % 27) + 1)),
+});
+
+const fakePerson = (i): PersonAttributes => ({
+  name: `person ${i} name`,
+});
+
+const fakeBoardTerm = (i, orgId): BoardTermAttributes => ({
+  person: i,
+  organization: orgId || 1,
+  dateFrom: new Date(2003, i % 11, (i % 27) + 1),
+  dateTo: new Date(2005, i % 11, (i % 27) + 1),
+  source: `board term ${i} source`,
+  position: `board term ${i} position`,
+  compensation: i * 1000,
+});
