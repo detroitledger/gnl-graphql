@@ -16,6 +16,7 @@
     "bunyan": "^1.8.12",
     "config": "^2.0.1",
     "dataloader-sequelize": "1.7.7",
+    "decamelize": "2.0.0",
     "google-auth-library": "1.6.1",
     "graphql": "14.0.2",
     "graphql-bigint": "1.0.0",
