@@ -39,8 +39,11 @@ function doImport() {
         stream.on('readable', async () => {
           let chunk;
 
-          while (null !== (chunk = stream.read())) {
+          chunk = stream.read();
+
+          while (chunk !== null) {
             await cfg.model.create(chunk);
+            chunk = stream.read();
           }
 
           resolve();
