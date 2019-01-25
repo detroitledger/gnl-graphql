@@ -1,3 +1,4 @@
+import * as Sequelize from 'sequelize';
 import { GraphQLServer } from 'graphql-yoga';
 import { createContext, EXPECTED_OPTIONS_KEY } from 'dataloader-sequelize';
 import {
@@ -5,6 +6,7 @@ import {
   attributeFields,
   defaultArgs,
   defaultListArgs,
+  simplifyAST,
 } from 'graphql-sequelize';
 
 import {
@@ -14,11 +16,17 @@ import {
   GraphQLString,
   GraphQLInt,
   GraphQLList,
+  GraphQLArgumentConfig,
+  GraphQLEnumType,
 } from 'graphql';
+
+import { escape } from 'sequelize/lib/sql-string';
 
 import * as GraphQLBigInt from 'graphql-bigint';
 
 import { Db } from './db/models';
+
+const MAX_LIMIT = 100;
 
 export default function createServer(db: Db): GraphQLServer {
   const orderByMultiResolver = (opts, args) => {
@@ -55,6 +63,10 @@ export default function createServer(db: Db): GraphQLServer {
 
   resolver.contextToOptions = { [EXPECTED_OPTIONS_KEY]: EXPECTED_OPTIONS_KEY };
 
+  // Arguments
+  const grantTagArgs = ledgerListArgs(db.GrantTag, ['total']);
+
+  // Types
   const shallowOrganizationType = new GraphQLObjectType({
     name: 'ShallowOrganization',
     description: 'An organization, without grants funded or received',
@@ -64,7 +76,13 @@ export default function createServer(db: Db): GraphQLServer {
   const grantTagType = new GraphQLObjectType({
     name: 'GrantTag',
     description: 'Tag associated with a grant',
-    fields: attributeFields(db.GrantTag, { exclude: ['id'] }),
+    fields: {
+      ...attributeFields(db.GrantTag, { exclude: ['id'] }),
+      total: {
+        type: GraphQLBigInt,
+        //resolve: source => source.dataValues.total,
+      },
+    },
   });
 
   const nteeGrantTypeType = new GraphQLObjectType({
@@ -132,8 +150,9 @@ export default function createServer(db: Db): GraphQLServer {
       },
       grantTags: {
         type: new GraphQLList(grantTagType),
+        args: grantTagArgs,
         // @ts-ignore
-        resolve: resolver(db.Grant.GrantTags),
+        resolve: grantTagResolver(db, true),
       },
       amount: { type: GraphQLBigInt },
     },
@@ -229,17 +248,17 @@ export default function createServer(db: Db): GraphQLServer {
               name: 'Stats',
               description: 'gnl stats',
               fields: {
-                total_num_grants: { type: GraphQLInt },
-                total_num_orgs: { type: GraphQLInt },
-                total_grants_dollars: { type: GraphQLBigInt },
+                totalNumGrants: { type: GraphQLInt },
+                totalNumOrgs: { type: GraphQLInt },
+                totalGrantsDollars: { type: GraphQLBigInt },
               },
             }),
             resolve: async () => {
               const results = await Promise.all(
                 [
-                  'SELECT COUNT(id) AS total_num_grants FROM "grant"',
-                  'SELECT COUNT(id) AS total_num_orgs FROM organization',
-                  'SELECT SUM(amount) AS total_grants_dollars FROM "grant"',
+                  'SELECT COUNT(id) AS totalNumGrants FROM "grant"',
+                  'SELECT COUNT(id) AS totalNumOrgs FROM organization',
+                  'SELECT SUM(amount) AS totalGrantsDollars FROM "grant"',
                 ].map(q =>
                   db.sequelize.query(q, {
                     type: db.Sequelize.QueryTypes.SELECT,
@@ -316,6 +335,11 @@ export default function createServer(db: Db): GraphQLServer {
             },
             resolve: resolver(db.Grant),
           },
+          grantTags: {
+            type: new GraphQLList(grantTagType),
+            args: grantTagArgs,
+            resolve: grantTagResolver(db),
+          },
         },
       }),
     }),
@@ -331,3 +355,92 @@ export default function createServer(db: Db): GraphQLServer {
     },
   });
 }
+
+const grantTagResolver = (db, grantId?: boolean) => async (
+  opts,
+  { limit, offset, orderBy, orderByDirection, uuid = null },
+  context,
+  info
+) => {
+  const { fieldNodes } = info;
+  const ast = simplifyAST(fieldNodes[0], info);
+
+  let where = '';
+  // Fetching only grant tags related to a specific grant
+  if (grantId) {
+    where = `WHERE g.id=${escape(opts.dataValues.id)}`;
+  } else {
+    where = uuid ? `WHERE gt.uuid = ${escape(uuid)}` : '';
+  }
+
+  const results = await db.sequelize.query(
+    `SELECT gt.id, gt.uuid, gt.name, gt.description, SUM(g.amount) as total
+FROM grant_tag gt
+LEFT JOIN grant_grant_tag ggt ON gt.id=ggt.grant_tag_id
+LEFT JOIN "grant" g ON ggt.grant_id=g.id
+${where}
+GROUP BY gt.id
+ORDER BY ${orderBy} ${orderByDirection}
+LIMIT :limit
+OFFSET :offset`,
+    {
+      type: db.Sequelize.QueryTypes.SELECT,
+      replacements: {
+        limit: Math.min(limit, MAX_LIMIT),
+        offset,
+      },
+    }
+  );
+
+  return results;
+};
+
+const ledgerListArgs = (
+  model: Sequelize.Model<any, any>,
+  orderBySpecialCols: string[]
+) => ({
+  orderBy: {
+    type: new GraphQLEnumType({
+      name: `orderBy${model.name}`,
+      // @ts-ignore tableAttributes is not in sequelize type defs
+      values: Object.keys(model.tableAttributes).reduce(
+        (acc, cur) => ({
+          ...acc,
+          [cur]: { value: cur },
+        }),
+        orderBySpecialCols.reduce(
+          (acc, cur) => ({
+            ...acc,
+            [cur]: { value: cur },
+          }),
+          {}
+        )
+      ),
+    }),
+    defaultValue: 'uuid',
+    description: 'sort results by given field',
+  },
+  orderByDirection: {
+    type: new GraphQLEnumType({
+      name: 'orderByDirection',
+      values: {
+        ASC: { value: 'ASC NULLS LAST' },
+        DESC: { value: 'DESC NULLS LAST' },
+      },
+    }),
+    defaultValue: 'DESC NULLS LAST',
+    description: 'sort direction',
+  },
+  limit: {
+    type: GraphQLInt,
+    defaultValue: 10,
+    description: `Number of items to return, maximum ${MAX_LIMIT}`,
+  },
+  offset: {
+    type: GraphQLInt,
+    defaultValue: 0,
+  },
+  uuid: {
+    type: GraphQLString,
+  },
+});
