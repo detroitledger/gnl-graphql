@@ -16,7 +16,6 @@ import {
   GraphQLString,
   GraphQLInt,
   GraphQLList,
-  GraphQLArgumentConfig,
   GraphQLEnumType,
 } from 'graphql';
 
@@ -65,12 +64,26 @@ export default function createServer(db: Db): GraphQLServer {
 
   // Arguments
   const grantTagArgs = ledgerListArgs(db.GrantTag, ['total']);
+  const organizationTagArgs = ledgerListArgs(db.OrganizationTag, [
+    'totalFunded',
+    'totalReceived',
+  ]);
 
   // Types
   const shallowOrganizationType = new GraphQLObjectType({
     name: 'ShallowOrganization',
     description: 'An organization, without grants funded or received',
     fields: attributeFields(db.Organization, { exclude: ['id'] }),
+  });
+
+  const organizationTagType = new GraphQLObjectType({
+    name: 'OrganizationTag',
+    description: 'Tag associated with an organization',
+    fields: {
+      ...attributeFields(db.OrganizationTag, { exclude: ['id'] }),
+      totalFunded: { type: GraphQLBigInt },
+      totalReceived: { type: GraphQLBigInt },
+    },
   });
 
   const grantTagType = new GraphQLObjectType({
@@ -89,12 +102,6 @@ export default function createServer(db: Db): GraphQLServer {
     name: 'NteeGrantType',
     description: 'NTEE classification of a grant',
     fields: attributeFields(db.NteeGrantType, { exclude: ['id'] }),
-  });
-
-  const organizationTagType = new GraphQLObjectType({
-    name: 'OrganizationTag',
-    description: 'Tag associated with an organization',
-    fields: attributeFields(db.OrganizationTag, { exclude: ['id'] }),
   });
 
   const nteeOrganizationTypeType = new GraphQLObjectType({
@@ -151,8 +158,7 @@ export default function createServer(db: Db): GraphQLServer {
       grantTags: {
         type: new GraphQLList(grantTagType),
         args: grantTagArgs,
-        // @ts-ignore
-        resolve: grantTagResolver(db, true),
+        resolve: grantTagResolver(db, { limitToGrantId: true }),
       },
       amount: { type: GraphQLBigInt },
     },
@@ -219,8 +225,8 @@ export default function createServer(db: Db): GraphQLServer {
       },
       organizationTags: {
         type: new GraphQLList(organizationTagType),
-        // @ts-ignore
-        resolve: resolver(db.Organization.OrganizationTags),
+        args: organizationTagArgs,
+        resolve: organizationTagResolver(db, { limitToOrganizationId: true }),
       },
     },
   });
@@ -335,6 +341,11 @@ export default function createServer(db: Db): GraphQLServer {
             },
             resolve: resolver(db.Grant),
           },
+          organizationTags: {
+            type: new GraphQLList(organizationTagType),
+            args: organizationTagArgs,
+            resolve: organizationTagResolver(db),
+          },
           grantTags: {
             type: new GraphQLList(grantTagType),
             args: grantTagArgs,
@@ -356,7 +367,69 @@ export default function createServer(db: Db): GraphQLServer {
   });
 }
 
-const grantTagResolver = (db, grantId?: boolean) => async (
+interface OrganizationTagResolverOptions {
+  limitToOrganizationId: boolean;
+}
+
+const defaultOrganizationTagResolverOptions = {
+  limitToOrganizationId: false,
+};
+
+interface GrantTagResolverOptions {
+  limitToGrantId: boolean;
+}
+
+const defaultGrantTagResolverOptions = {
+  limitToGrantId: false,
+};
+
+const organizationTagResolver = (
+  db,
+  resolverOpts: OrganizationTagResolverOptions = defaultOrganizationTagResolverOptions
+) => async (
+  opts,
+  { limit, offset, orderBy, orderByDirection, uuid = null },
+  context,
+  info
+) => {
+  const { fieldNodes } = info;
+  const ast = simplifyAST(fieldNodes[0], info);
+
+  let where = '';
+  // Fetching only organization tags related to a specific organization
+  if (resolverOpts.limitToOrganizationId) {
+    where = `WHERE oot.organization_id=${escape(opts.dataValues.id)}`;
+  } else {
+    where = uuid ? `WHERE ot.uuid = ${escape(uuid)}` : '';
+  }
+
+  const results = await db.sequelize.query(
+    `SELECT ot.id, ot.uuid, ot.name, ot.description, SUM(gf.amount) as "totalFunded", SUM(gr.amount) as "totalReceived"
+FROM organization_tag ot
+LEFT JOIN organization_organization_tag oot ON ot.id=oot.organization_tag_id
+LEFT JOIN "grant" gf ON gf.from=oot.organization_id
+LEFT JOIN "grant" gr ON gr.to=oot.organization_id
+${where}
+GROUP BY ot.id
+ORDER BY "${orderBy}" ${orderByDirection}
+LIMIT :limit
+OFFSET :offset`,
+    {
+      type: db.Sequelize.QueryTypes.SELECT,
+      replacements: {
+        limit: Math.min(limit, MAX_LIMIT),
+        offset,
+      },
+    }
+  );
+
+  return results;
+};
+
+const grantTagResolver = (
+  db,
+  resolverOpts: GrantTagResolverOptions = defaultGrantTagResolverOptions
+) => async (
   opts,
   { limit, offset, orderBy, orderByDirection, uuid = null },
   context,
@@ -367,7 +440,7 @@ const grantTagResolver = (db, grantId?: boolean) => async (
 
   let where = '';
   // Fetching only grant tags related to a specific grant
-  if (grantId) {
+  if (resolverOpts.limitToGrantId) {
     where = `WHERE g.id=${escape(opts.dataValues.id)}`;
   } else {
     where = uuid ? `WHERE gt.uuid = ${escape(uuid)}` : '';
@@ -380,7 +453,7 @@ LEFT JOIN grant_grant_tag ggt ON gt.id=ggt.grant_tag_id
 LEFT JOIN "grant" g ON ggt.grant_id=g.id
 ${where}
 GROUP BY gt.id
-ORDER BY ${orderBy} ${orderByDirection}
+ORDER BY "${orderBy}" ${orderByDirection}
 LIMIT :limit
 OFFSET :offset`,
     {
@@ -422,7 +495,7 @@ const ledgerListArgs = (
   },
   orderByDirection: {
     type: new GraphQLEnumType({
-      name: 'orderByDirection',
+      name: `orderByDirection${model.name}`,
       values: {
         ASC: { value: 'ASC NULLS LAST' },
         DESC: { value: 'DESC NULLS LAST' },
