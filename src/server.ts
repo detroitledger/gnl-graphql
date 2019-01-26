@@ -1,4 +1,5 @@
 import * as Sequelize from 'sequelize';
+import * as decamelize from 'decamelize';
 import { GraphQLServer } from 'graphql-yoga';
 import { createContext, EXPECTED_OPTIONS_KEY } from 'dataloader-sequelize';
 import {
@@ -6,7 +7,6 @@ import {
   attributeFields,
   defaultArgs,
   defaultListArgs,
-  simplifyAST,
 } from 'graphql-sequelize';
 
 import {
@@ -26,6 +26,22 @@ import * as GraphQLBigInt from 'graphql-bigint';
 import { Db } from './db/models';
 
 const MAX_LIMIT = 100;
+
+const organizationSpecialFields = {
+  countGrantsFrom: {
+    type: GraphQLInt,
+    resolve: (a, b, c, d, e, f, g) => {
+      debugger;
+    },
+  },
+  countGrantsTo: { type: GraphQLInt },
+  countDistinctFunders: { type: GraphQLInt },
+  countDistinctRecipients: { type: GraphQLInt },
+  totalReceived: { type: GraphQLBigInt },
+  totalFunded: { type: GraphQLBigInt },
+  grantdatesStart: { type: GraphQLString },
+  grantdatesEnd: { type: GraphQLString },
+};
 
 export default function createServer(db: Db): GraphQLServer {
   const orderByMultiResolver = (opts, args) => {
@@ -73,6 +89,10 @@ export default function createServer(db: Db): GraphQLServer {
     'totalFunded',
     'totalReceived',
   ]);
+  const organizationArgs = ledgerListArgs(
+    db.Organization,
+    Object.keys(organizationSpecialFields)
+  );
 
   // Types
   const shallowOrganizationType = new GraphQLObjectType({
@@ -138,8 +158,8 @@ export default function createServer(db: Db): GraphQLServer {
       },
       organization: {
         type: shallowOrganizationType,
-        // @ts-ignore
-        resolve: resolver(db.BoardTerm.Organization),
+        args: organizationArgs,
+        resolve: organizationResolver(db),
       },
     },
   });
@@ -151,13 +171,13 @@ export default function createServer(db: Db): GraphQLServer {
       ...attributeFields(db.Grant, { exclude: ['id'] }),
       from: {
         type: shallowOrganizationType,
-        // @ts-ignore
-        resolve: resolver(db.Grant.Funder),
+        args: organizationArgs,
+        resolve: organizationResolver(db, opts => opts.get('from')),
       },
       to: {
         type: shallowOrganizationType,
-        // @ts-ignore
-        resolve: resolver(db.Grant.Recipient),
+        args: organizationArgs,
+        resolve: organizationResolver(db, opts => opts.get('to')),
       },
       nteeGrantTypes: {
         type: new GraphQLList(nteeGrantTypeType),
@@ -186,8 +206,8 @@ export default function createServer(db: Db): GraphQLServer {
       ...attributeFields(db.News, { exclude: ['id'] }),
       organizations: {
         type: new GraphQLList(shallowOrganizationType),
-        // @ts-ignore
-        resolve: resolver(db.News.Organizations),
+        args: organizationArgs,
+        resolve: organizationResolver(db),
       },
       grants: {
         type: new GraphQLList(grantType),
@@ -202,6 +222,7 @@ export default function createServer(db: Db): GraphQLServer {
     description: 'An organization, duh',
     fields: {
       ...attributeFields(db.Organization, { exclude: ['id'] }),
+      ...organizationSpecialFields,
       boardTerms: {
         type: new GraphQLList(boardTermType),
         // @ts-ignore
@@ -304,16 +325,8 @@ export default function createServer(db: Db): GraphQLServer {
           },
           organizations: {
             type: new GraphQLList(organizationType),
-            args: {
-              ...defaultListArgs(),
-              ...defaultArgs(db.Organization),
-              orderByMulti: {
-                type: new GraphQLList(new GraphQLList(GraphQLString)),
-              },
-            },
-            resolve: resolver(db.Organization, {
-              before: orderByMultiResolver,
-            }),
+            args: organizationArgs,
+            resolve: organizationResolver(db),
           },
           organizationMetas: {
             type: new GraphQLList(organizationMetaType),
@@ -404,6 +417,52 @@ const defaultGrantTagResolverOptions = {
   limitToGrantId: false,
 };
 
+interface OrganizationIdDeducer {
+  (opts: any): number;
+}
+
+const organizationResolver = (
+  db,
+  orgIdDeducer?: OrganizationIdDeducer
+) => async (
+  opts,
+  { limit, offset, orderBy, orderByDirection, uuid = null },
+  context,
+  info
+) => {
+  let where = '';
+  if (uuid) {
+    where = `WHERE o.uuid = ${escape(uuid)}`;
+  } else if (opts && orgIdDeducer) {
+    where = `WHERE o.id = ${orgIdDeducer(opts)}`;
+  }
+
+  const metaCols = Object.keys(organizationSpecialFields).map(
+    col => `om.${decamelize(col)} AS "${col}"`
+  );
+
+  const results = await db.sequelize.query(
+    `SELECT o.*, ${metaCols.join(',')}
+FROM organization o
+LEFT JOIN organization_meta om ON o.id=om.id
+${where}
+ORDER BY "${orderBy}" ${orderByDirection}
+LIMIT :limit
+OFFSET :offset`,
+    {
+      type: db.Sequelize.QueryTypes.SELECT,
+      model: db.Organization,
+      mapToModel: true,
+      replacements: {
+        limit: Math.min(limit, MAX_LIMIT),
+        offset,
+      },
+    }
+  );
+
+  return orgIdDeducer ? results[0] : results;
+};
+
 const organizationTagResolver = (
   db,
   resolverOpts: OrganizationTagResolverOptions = defaultOrganizationTagResolverOptions
@@ -413,9 +472,6 @@ const organizationTagResolver = (
   context,
   info
 ) => {
-  const { fieldNodes } = info;
-  const ast = simplifyAST(fieldNodes[0], info);
-
   let where = '';
   // Fetching only organization tags related to a specific organization
   if (resolverOpts.limitToOrganizationId) {
@@ -456,9 +512,6 @@ const nteeOrganizationTypeResolver = (
   context,
   info
 ) => {
-  const { fieldNodes } = info;
-  const ast = simplifyAST(fieldNodes[0], info);
-
   let where = '';
   // Fetching only organization tags related to a specific organization
   if (resolverOpts.limitToOrganizationId) {
@@ -499,9 +552,6 @@ const grantTagResolver = (
   context,
   info
 ) => {
-  const { fieldNodes } = info;
-  const ast = simplifyAST(fieldNodes[0], info);
-
   let where = '';
   // Fetching only grant tags related to a specific grant
   if (resolverOpts.limitToGrantId) {
@@ -541,9 +591,6 @@ const nteeGrantTypeResolver = (
   context,
   info
 ) => {
-  const { fieldNodes } = info;
-  const ast = simplifyAST(fieldNodes[0], info);
-
   let where = '';
   // Fetching only grant tags related to a specific grant
   if (resolverOpts.limitToGrantId) {

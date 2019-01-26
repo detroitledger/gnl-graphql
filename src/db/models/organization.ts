@@ -31,6 +31,16 @@ export interface OrganizationAttributes {
   createdAt?: string;
   updatedAt?: string;
 
+  // From meta table join:
+  countGrantsFrom?: number;
+  countGrantsTo?: number;
+  countDistinctFunders?: number;
+  countDistinctRecipients?: number;
+  totalReceived?: number;
+  totalFunded?: number;
+  grantdatesStart?: Date;
+  grantdatesEnd?: Date;
+
   // Relationships
   getOrganizationOrganizationTag?: Sequelize.BelongsToGetAssociationMixin<
     OrganizationTagInstance[]
@@ -112,6 +122,40 @@ export default (sequelize: Sequelize.Sequelize) => {
         type: Sequelize.BOOLEAN,
         allowNull: true,
         field: 'public_funder',
+      },
+
+      // From meta table join:
+      countGrantsFrom: {
+        type: new Sequelize.VIRTUAL(Sequelize.INTEGER),
+        field: 'count_grants_from',
+      },
+      countGrantsTo: {
+        type: new Sequelize.VIRTUAL(Sequelize.INTEGER),
+        field: 'count_grants_to',
+      },
+      countDistinctFunders: {
+        type: new Sequelize.VIRTUAL(Sequelize.INTEGER),
+        field: 'count_distinct_funders',
+      },
+      countDistinctRecipients: {
+        type: new Sequelize.VIRTUAL(Sequelize.INTEGER),
+        field: 'count_distinct_recipients',
+      },
+      totalReceived: {
+        type: new Sequelize.VIRTUAL(Sequelize.BIGINT),
+        field: 'total_received',
+      },
+      totalFunded: {
+        type: new Sequelize.VIRTUAL(Sequelize.BIGINT),
+        field: 'total_funded',
+      },
+      grantdatesStart: {
+        type: new Sequelize.VIRTUAL(Sequelize.DATEONLY),
+        field: 'grantdates_start',
+      },
+      grantdatesEnd: {
+        type: new Sequelize.VIRTUAL(Sequelize.DATEONLY),
+        field: 'grantdates_end',
       },
     },
     {
