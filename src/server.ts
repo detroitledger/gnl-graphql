@@ -57,20 +57,6 @@ export default function createServer(db: Db): GraphQLServer {
     return options;
   };
 
-  const organizationNameILikeResolver = (opts, args) => {
-    if (args.organizationNameILike)
-      opts.include = [
-        {
-          required: true,
-          model: db.Organization,
-          where: {
-            name: { [db.sequelize.Op.iLike]: args.organizationNameILike },
-          },
-        },
-      ];
-    return opts;
-  };
-
   resolver.contextToOptions = { [EXPECTED_OPTIONS_KEY]: EXPECTED_OPTIONS_KEY };
 
   // Arguments
@@ -84,10 +70,12 @@ export default function createServer(db: Db): GraphQLServer {
     'totalFunded',
     'totalReceived',
   ]);
-  const organizationArgs = ledgerListArgs(
-    db.Organization,
-    Object.keys(organizationSpecialFields)
-  );
+  const organizationArgs = {
+    ...ledgerListArgs(db.Organization, Object.keys(organizationSpecialFields)),
+    nameLike: {
+      type: GraphQLString,
+    },
+  };
 
   // Types
   const shallowOrganizationType = new GraphQLObjectType({
@@ -330,27 +318,6 @@ export default function createServer(db: Db): GraphQLServer {
             args: organizationArgs,
             resolve: organizationResolver(db),
           },
-          organizationMetas: {
-            type: new GraphQLList(organizationMetaType),
-            args: {
-              ...defaultListArgs(),
-              ...defaultArgs(db.OrganizationMeta),
-              orderByMulti: {
-                type: new GraphQLList(new GraphQLList(GraphQLString)),
-              },
-              organizationNameILike: {
-                type: GraphQLString,
-              },
-            },
-            resolve: resolver(db.OrganizationMeta, {
-              before: (opts, args) => {
-                return organizationNameILikeResolver(
-                  orderByMultiResolver(opts, args),
-                  args
-                );
-              },
-            }),
-          },
           grant: {
             type: grantType,
             args: defaultArgs({
@@ -434,13 +401,17 @@ const organizationResolver = (
   orgAddJoin?: OrganizationAddJoin
 ) => async (
   opts,
-  { limit, offset, orderBy, orderByDirection, uuid = null },
+  { limit, offset, orderBy, orderByDirection, uuid = null, id, nameLike },
   context,
   info
 ) => {
   let where = '';
   if (uuid) {
     where = `WHERE o.uuid = ${escape(uuid)}`;
+  } else if (id) {
+    where = `WHERE o.id= ${escape(id)}`;
+  } else if (nameLike) {
+    where = `WHERE o.name ILIKE ${escape(nameLike)}`;
   } else if (opts && orgIdDeducer) {
     where = `WHERE o.id = ${orgIdDeducer(opts)}`;
   }
@@ -682,5 +653,8 @@ const ledgerListArgs = (
   },
   uuid: {
     type: GraphQLString,
+  },
+  id: {
+    type: GraphQLInt,
   },
 });

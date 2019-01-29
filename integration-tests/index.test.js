@@ -8,6 +8,7 @@ import * as orgsWithGrants from './test-queries/orgs-with-grants';
 import * as someNews from './test-queries/some-news';
 import * as boardTerms from './test-queries/board-terms';
 import * as moreMeta from './test-queries/more-meta';
+import * as orgNameLike from './test-queries/org-name-like';
 
 const createServerInstance = async () => {
   const db = dbFactory();
@@ -67,13 +68,13 @@ test('organization_meta updates automatically', async () => {
   const { uri, instance, db } = await createServerInstance();
   const query = `
 query foo {
-	giver: organizationMetas(id: 3) {
+	giver: organizations(id: 3) {
 		countGrantsTo
 		countGrantsFrom
 		countDistinctFunders
 		countDistinctRecipients
 	}
-	receiver: organizationMetas(id: 91) {
+	receiver: organizations(id: 91) {
 		countGrantsTo
 		countGrantsFrom
 		countDistinctFunders
@@ -136,3 +137,14 @@ query foo {
 
   instance.close();
 });
+
+test('filters organizations by name', async () => {
+  const { uri, instance } = await createServerInstance();
+
+  const res = await request(uri, orgNameLike.query);
+
+  expect(res).toEqual(orgNameLike.expected.data);
+
+  instance.close();
+});
+

@@ -1,41 +1,36 @@
 export const query = `
 query foo {
-  organizationMetas(
+  organizations(
     limit: 2
     offset: 1
-    orderByMulti: [["countGrantsTo", "DESC"], ["id", "ASC"]]
+    orderBy: countGrantsTo
+    orderByDirection: DESC
   ) {
     countGrantsTo
     countGrantsFrom
     countDistinctFunders
     countDistinctRecipients
-    organization {
-      name
-    }
+    name
   }
 }
 `;
 
 export const expected = {
   data: {
-    organizationMetas: [
+    organizations: [
       {
         countGrantsTo: 16,
         countGrantsFrom: 16,
         countDistinctFunders: 16,
         countDistinctRecipients: 16,
-        organization: {
-          name: 'test organization 89',
-        },
+        name: 'test organization 89',
       },
       {
         countGrantsTo: 16,
         countGrantsFrom: 16,
         countDistinctFunders: 16,
         countDistinctRecipients: 16,
-        organization: {
-          name: 'test organization 91',
-        },
+        name: 'test organization 91',
       },
     ],
   },
