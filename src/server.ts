@@ -28,12 +28,7 @@ import { Db } from './db/models';
 const MAX_LIMIT = 100;
 
 const organizationSpecialFields = {
-  countGrantsFrom: {
-    type: GraphQLInt,
-    resolve: (a, b, c, d, e, f, g) => {
-      debugger;
-    },
-  },
+  countGrantsFrom: { type: GraphQLInt },
   countGrantsTo: { type: GraphQLInt },
   countDistinctFunders: { type: GraphQLInt },
   countDistinctRecipients: { type: GraphQLInt },
