@@ -253,19 +253,6 @@ export default function createServer(db: Db): GraphQLServer {
     },
   });
 
-  const organizationMetaType = new GraphQLObjectType({
-    name: 'OrganizationMeta',
-    description: 'Extra org info',
-    fields: {
-      ...attributeFields(db.OrganizationMeta, { exclude: ['id'] }),
-      organization: {
-        type: organizationType,
-        // @ts-ignore
-        resolve: resolver(db.OrganizationMeta.Organization),
-      },
-    },
-  });
-
   return new GraphQLServer({
     schema: new GraphQLSchema({
       query: new GraphQLObjectType({
