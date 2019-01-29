@@ -207,7 +207,14 @@ export default function createServer(db: Db): GraphQLServer {
       organizations: {
         type: new GraphQLList(shallowOrganizationType),
         args: organizationArgs,
-        resolve: organizationResolver(db),
+        resolve: organizationResolver(
+          db,
+          undefined,
+          opts =>
+            `INNER JOIN news_organizations no ON no.news_id=${
+              opts.id
+            } AND no.organization_id=o.id`
+        ),
       },
       grants: {
         type: new GraphQLList(grantType),
@@ -421,9 +428,15 @@ interface OrganizationIdDeducer {
   (opts: any): number;
 }
 
+// Add a join to the organization query
+interface OrganizationAddJoin {
+  (opts: any): string;
+}
+
 const organizationResolver = (
   db,
-  orgIdDeducer?: OrganizationIdDeducer
+  orgIdDeducer?: OrganizationIdDeducer,
+  orgAddJoin?: OrganizationAddJoin
 ) => async (
   opts,
   { limit, offset, orderBy, orderByDirection, uuid = null },
@@ -437,6 +450,11 @@ const organizationResolver = (
     where = `WHERE o.id = ${orgIdDeducer(opts)}`;
   }
 
+  let addedJoin = '';
+  if (opts && orgAddJoin) {
+    addedJoin = orgAddJoin(opts);
+  }
+
   const metaCols = Object.keys(organizationSpecialFields).map(
     col => `om.${decamelize(col)} AS "${col}"`
   );
@@ -445,6 +463,7 @@ const organizationResolver = (
     `SELECT o.*, ${metaCols.join(',')}
 FROM organization o
 LEFT JOIN organization_meta om ON o.id=om.id
+${addedJoin}
 ${where}
 ORDER BY "${orderBy}" ${orderByDirection}
 LIMIT :limit
