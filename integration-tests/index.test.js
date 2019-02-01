@@ -68,13 +68,13 @@ test('organization_meta updates automatically', async () => {
   const { uri, instance, db } = await createServerInstance();
   const query = `
 query foo {
-	giver: organizations(id: 3) {
+	giver: organization(id: 3) {
 		countGrantsTo
 		countGrantsFrom
 		countDistinctFunders
 		countDistinctRecipients
 	}
-	receiver: organizations(id: 91) {
+	receiver: organization(id: 91) {
 		countGrantsTo
 		countGrantsFrom
 		countDistinctFunders
@@ -99,40 +99,36 @@ query foo {
 
   // Assert
   expect(resBefore).toEqual({
-    giver: [
+    giver:
       {
         countGrantsTo: 0,
         countGrantsFrom: 0,
         countDistinctFunders: 0,
         countDistinctRecipients: 0,
       },
-    ],
-    receiver: [
+    receiver:
       {
         countGrantsTo: 17,
         countGrantsFrom: 17,
         countDistinctFunders: 17,
         countDistinctRecipients: 17,
       },
-    ],
   });
   expect(resAfter).toEqual({
-    giver: [
+    giver:
       {
         countGrantsTo: 0,
         countGrantsFrom: 1,
         countDistinctFunders: 0,
         countDistinctRecipients: 1,
       },
-    ],
-    receiver: [
+    receiver:
       {
         countGrantsTo: 18,
         countGrantsFrom: 17,
         countDistinctFunders: 18,
         countDistinctRecipients: 17,
       },
-    ],
   });
 
   instance.close();

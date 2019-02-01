@@ -2,6 +2,7 @@ import * as Sequelize from 'sequelize';
 import * as decamelize from 'decamelize';
 import { GraphQLServer } from 'graphql-yoga';
 import { createContext, EXPECTED_OPTIONS_KEY } from 'dataloader-sequelize';
+import * as DataLoader from 'dataloader';
 import {
   resolver,
   attributeFields,
@@ -25,6 +26,8 @@ import * as GraphQLBigInt from 'graphql-bigint';
 
 import { Db } from './db/models';
 
+import { OrganizationInstance } from './db/models/organization';
+
 const MAX_LIMIT = 100;
 
 const organizationSpecialFields = {
@@ -39,24 +42,6 @@ const organizationSpecialFields = {
 };
 
 export default function createServer(db: Db): GraphQLServer {
-  const orderByMultiResolver = (opts, args) => {
-    const options = {
-      order: [],
-      ...opts,
-    };
-
-    if (args.orderByMulti) {
-      options.order = options.order.concat(
-        args.orderByMulti.map(arg => [
-          arg[0],
-          arg[1] === 'ASC' ? 'ASC NULLS LAST' : 'DESC NULLS LAST',
-        ])
-      );
-    }
-
-    return options;
-  };
-
   resolver.contextToOptions = { [EXPECTED_OPTIONS_KEY]: EXPECTED_OPTIONS_KEY };
 
   // Arguments
@@ -70,6 +55,7 @@ export default function createServer(db: Db): GraphQLServer {
     'totalFunded',
     'totalReceived',
   ]);
+  const grantArgs = ledgerListArgs(db.Grant);
   const organizationArgs = {
     ...ledgerListArgs(db.Organization, Object.keys(organizationSpecialFields)),
     nameLike: {
@@ -142,7 +128,7 @@ export default function createServer(db: Db): GraphQLServer {
       organization: {
         type: shallowOrganizationType,
         args: organizationArgs,
-        resolve: organizationResolver(db),
+        resolve: singleOrganizationResolver(),
       },
     },
   });
@@ -155,12 +141,12 @@ export default function createServer(db: Db): GraphQLServer {
       from: {
         type: shallowOrganizationType,
         args: organizationArgs,
-        resolve: organizationResolver(db, opts => opts.get('from')),
+        resolve: singleOrganizationResolver(opts => opts.get('from')),
       },
       to: {
         type: shallowOrganizationType,
         args: organizationArgs,
-        resolve: organizationResolver(db, opts => opts.get('to')),
+        resolve: singleOrganizationResolver(opts => opts.get('to')),
       },
       nteeGrantTypes: {
         type: new GraphQLList(nteeGrantTypeType),
@@ -192,7 +178,6 @@ export default function createServer(db: Db): GraphQLServer {
         args: organizationArgs,
         resolve: organizationResolver(
           db,
-          undefined,
           opts =>
             `INNER JOIN news_organizations no ON no.news_id=${
               opts.id
@@ -220,13 +205,13 @@ export default function createServer(db: Db): GraphQLServer {
       },
       grantsFunded: {
         type: new GraphQLList(grantType),
-        // @ts-ignore
-        resolve: resolver(db.Organization.GrantsFunded),
+        args: grantArgs,
+        resolve: grantResolver(db, opts => `WHERE g.from=${opts.get('id')}`),
       },
       grantsReceived: {
         type: new GraphQLList(grantType),
-        // @ts-ignore
-        resolve: resolver(db.Organization.GrantsReceived),
+        args: grantArgs,
+        resolve: grantResolver(db, opts => `WHERE g.to=${opts.get('id')}`),
       },
       forms990: {
         type: new GraphQLList(form990Type),
@@ -288,9 +273,9 @@ export default function createServer(db: Db): GraphQLServer {
             type: organizationType,
             args: defaultArgs({
               ...db.Organization,
-              primaryKeyAttributes: ['uuid'],
+              primaryKeyAttributes: ['id', 'uuid'],
             }),
-            resolve: resolver(db.Organization),
+            resolve: singleOrganizationResolver(),
           },
           news: {
             type: new GraphQLList(newsType),
@@ -347,11 +332,15 @@ export default function createServer(db: Db): GraphQLServer {
     context(req) {
       // For each request, create a DataLoader context for Sequelize to use
       const dataloaderContext = createContext(db.sequelize);
+      const getOrganizationById = createGetOrganizationByIdDataloader(db);
+      const getOrganizationByUuid = createGetOrganizationByUuidDataloader(db);
 
       // Using the same EXPECTED_OPTIONS_KEY, store the DataLoader context
       // in the global request context
       return {
         [EXPECTED_OPTIONS_KEY]: dataloaderContext,
+        getOrganizationById,
+        getOrganizationByUuid,
       };
     },
   });
@@ -373,34 +362,137 @@ const defaultGrantTagResolverOptions = {
   limitToGrantId: false,
 };
 
-interface OrganizationIdDeducer {
-  (opts: any): number;
-}
-
-// Add a join to the organization query
-interface OrganizationAddJoin {
+// Add a join to a organization query
+interface AddJoin {
   (opts: any): string;
 }
 
-const organizationResolver = (
-  db,
-  orgIdDeducer?: OrganizationIdDeducer,
-  orgAddJoin?: OrganizationAddJoin
-) => async (
+const grantResolver = (db, grantAddWhere?: AddJoin) => async (
   opts,
-  { limit, offset, orderBy, orderByDirection, uuid = null, id, nameLike },
+  { limit, offset, orderBy, orderByDirection },
   context,
   info
 ) => {
   let where = '';
-  if (uuid) {
-    where = `WHERE o.uuid = ${escape(uuid)}`;
-  } else if (id) {
-    where = `WHERE o.id= ${escape(id)}`;
-  } else if (nameLike) {
+  if (grantAddWhere) {
+    where = grantAddWhere(opts);
+  }
+
+  const results = await db.sequelize.query(
+    `SELECT g.*
+FROM "grant" g
+${where}
+ORDER BY "${decamelize(orderBy)}" ${orderByDirection}
+LIMIT :limit
+OFFSET :offset`,
+    {
+      type: db.Sequelize.QueryTypes.SELECT,
+      model: db.Grant,
+      mapToModel: true,
+      replacements: {
+        limit: Math.min(limit, MAX_LIMIT),
+        offset,
+      },
+    }
+  );
+
+  return results;
+};
+
+const metaCols = Object.keys(organizationSpecialFields).map(
+  col => `om.${decamelize(col)} AS "${decamelize(col)}"`
+);
+
+const createGetOrganizationByIdDataloader = (db: Db) => {
+  return new DataLoader(
+    async (ids: number[]): Promise<OrganizationInstance[]> => {
+      const results = await db.sequelize.query(
+        `SELECT o.*, ${metaCols.join(',')}
+  FROM organization o
+  LEFT JOIN organization_meta om ON o.id=om.id
+  WHERE o.id IN(:ids)`,
+        {
+          type: db.Sequelize.QueryTypes.SELECT,
+          model: db.Organization,
+          mapToModel: true,
+          replacements: { ids },
+        }
+      );
+
+      const ordered = ids.map(
+        id =>
+          results.find(o => o.id === id) ||
+          new Error(`cannot find organization with id ${id}`)
+      );
+
+      return ordered;
+    }
+  );
+};
+
+const createGetOrganizationByUuidDataloader = (db: Db) => {
+  return new DataLoader(
+    async (uuids: number[]): Promise<OrganizationInstance[]> => {
+      const results = await db.sequelize.query(
+        `SELECT o.*, ${metaCols.join(',')}
+  FROM organization o
+  LEFT JOIN organization_meta om ON o.id=om.id
+  WHERE o.uuid IN(:uuids)`,
+        {
+          type: db.Sequelize.QueryTypes.SELECT,
+          model: db.Organization,
+          mapToModel: true,
+          replacements: { uuids },
+        }
+      );
+
+      const ordered = uuids.map(
+        uuid =>
+          results.find(o => o.uuid === uuid) ||
+          new Error(`cannot find organization with uuid ${uuid}`)
+      );
+
+      return ordered;
+    }
+  );
+};
+
+interface GetIdFromOpts {
+  (opts: any): number;
+}
+
+const singleOrganizationResolver = (getId?: GetIdFromOpts) => async (
+  opts,
+  args,
+  context,
+  info
+) => {
+  if (getId) {
+    return context.getOrganizationById.load(getId(opts));
+  }
+
+  if (args.id) {
+    return context.getOrganizationById.load(args.id);
+  }
+
+  if (args.uuid) {
+    return context.getOrganizationByUuid.load(args.uuid);
+  }
+};
+
+const singleGrantResolver = getId => async (opts, args, context, info) => {
+  return context.getGrantById.load(getId(opts));
+};
+
+const organizationResolver = (db, orgAddJoin?: AddJoin) => async (
+  opts,
+  { limit, offset, orderBy, orderByDirection, nameLike },
+  context,
+  info
+) => {
+  let where = '';
+  if (nameLike) {
     where = `WHERE o.name ILIKE ${escape(nameLike)}`;
-  } else if (opts && orgIdDeducer) {
-    where = `WHERE o.id = ${orgIdDeducer(opts)}`;
   }
 
   let addedJoin = '';
@@ -408,17 +500,13 @@ const organizationResolver = (
     addedJoin = orgAddJoin(opts);
   }
 
-  const metaCols = Object.keys(organizationSpecialFields).map(
-    col => `om.${decamelize(col)} AS "${col}"`
-  );
-
   const results = await db.sequelize.query(
     `SELECT o.*, ${metaCols.join(',')}
 FROM organization o
 LEFT JOIN organization_meta om ON o.id=om.id
 ${addedJoin}
 ${where}
-ORDER BY "${orderBy}" ${orderByDirection}
+ORDER BY "${decamelize(orderBy)}" ${orderByDirection}
 LIMIT :limit
 OFFSET :offset`,
     {
@@ -432,7 +520,7 @@ OFFSET :offset`,
     }
   );
 
-  return orgIdDeducer ? results[0] : results;
+  return results;
 };
 
 const organizationTagResolver = (
@@ -595,7 +683,7 @@ OFFSET :offset`,
 
 const ledgerListArgs = (
   model: Sequelize.Model<any, any>,
-  orderBySpecialCols: string[]
+  orderBySpecialCols: string[] = []
 ) => ({
   orderBy: {
     type: new GraphQLEnumType({

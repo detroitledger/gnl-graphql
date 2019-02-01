@@ -2197,7 +2197,7 @@ dataloader-sequelize@1.7.7:
     lru-cache "^4.0.1"
     shimmer "^1.1.0"
 
-dataloader@^1.2.0:
+dataloader@1.4.0, dataloader@^1.2.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/dataloader/-/dataloader-1.4.0.tgz#bca11d867f5d3f1b9ed9f737bd15970c65dff5c8"
   integrity sha512-68s5jYdlvasItOJnCuI2Q9s4q98g0pCyL3HrcKJu8KNugUl8ahgmZYg38ysLTgQjjXX3H8CJLkAvWrclWfcalw==
