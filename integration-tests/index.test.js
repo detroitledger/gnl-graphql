@@ -9,6 +9,7 @@ import * as someNews from './test-queries/some-news';
 import * as boardTerms from './test-queries/board-terms';
 import * as moreMeta from './test-queries/more-meta';
 import * as orgNameLike from './test-queries/org-name-like';
+import * as sortOrgGrantsByDate from './test-queries/sort-org-grants-by-date';
 
 const createServerInstance = async () => {
   const db = dbFactory();
@@ -99,36 +100,32 @@ query foo {
 
   // Assert
   expect(resBefore).toEqual({
-    giver:
-      {
-        countGrantsTo: 0,
-        countGrantsFrom: 0,
-        countDistinctFunders: 0,
-        countDistinctRecipients: 0,
-      },
-    receiver:
-      {
-        countGrantsTo: 17,
-        countGrantsFrom: 17,
-        countDistinctFunders: 17,
-        countDistinctRecipients: 17,
-      },
+    giver: {
+      countGrantsTo: 0,
+      countGrantsFrom: 0,
+      countDistinctFunders: 0,
+      countDistinctRecipients: 0,
+    },
+    receiver: {
+      countGrantsTo: 17,
+      countGrantsFrom: 17,
+      countDistinctFunders: 17,
+      countDistinctRecipients: 17,
+    },
   });
   expect(resAfter).toEqual({
-    giver:
-      {
-        countGrantsTo: 0,
-        countGrantsFrom: 1,
-        countDistinctFunders: 0,
-        countDistinctRecipients: 1,
-      },
-    receiver:
-      {
-        countGrantsTo: 18,
-        countGrantsFrom: 17,
-        countDistinctFunders: 18,
-        countDistinctRecipients: 17,
-      },
+    giver: {
+      countGrantsTo: 0,
+      countGrantsFrom: 1,
+      countDistinctFunders: 0,
+      countDistinctRecipients: 1,
+    },
+    receiver: {
+      countGrantsTo: 18,
+      countGrantsFrom: 17,
+      countDistinctFunders: 18,
+      countDistinctRecipients: 17,
+    },
   });
 
   instance.close();
@@ -144,3 +141,12 @@ test('filters organizations by name', async () => {
   instance.close();
 });
 
+test('sorts organization grants by date', async () => {
+  const { uri, instance } = await createServerInstance();
+
+  const res = await request(uri, sortOrgGrantsByDate.query);
+
+  expect(res).toEqual(sortOrgGrantsByDate.expected.data);
+
+  instance.close();
+});
