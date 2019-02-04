@@ -69,18 +69,18 @@ test('organization_meta updates automatically', async () => {
   const { uri, instance, db } = await createServerInstance();
   const query = `
 query foo {
-	giver: organization(id: 3) {
-		countGrantsTo
-		countGrantsFrom
-		countDistinctFunders
-		countDistinctRecipients
-	}
-	receiver: organization(id: 91) {
-		countGrantsTo
-		countGrantsFrom
-		countDistinctFunders
-		countDistinctRecipients
-	}
+  giver: organization(id: 3) {
+    countGrantsTo
+    countGrantsFrom
+    countDistinctFunders
+    countDistinctRecipients
+  }
+  receiver: organization(id: 91) {
+    countGrantsTo
+    countGrantsFrom
+    countDistinctFunders
+    countDistinctRecipients
+  }
 }`;
 
   const resBefore = await request(uri, query);
