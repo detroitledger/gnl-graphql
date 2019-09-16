@@ -196,12 +196,12 @@ export default function createServer(db: Db): GraphQLServer {
       grantsFunded: {
         type: new GraphQLList(grantType),
         args: grantArgs,
-        resolve: grantResolver(db, opts => `WHERE g.from=${opts.get('id')}`),
+        resolve: grantResolver(db, opts => `g.from=${opts.get('id')}`),
       },
       grantsReceived: {
         type: new GraphQLList(grantType),
         args: grantArgs,
-        resolve: grantResolver(db, opts => `WHERE g.to=${opts.get('id')}`),
+        resolve: grantResolver(db, opts => `g.to=${opts.get('id')}`),
       },
       forms990: {
         type: new GraphQLList(form990Type),

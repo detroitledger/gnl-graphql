@@ -150,3 +150,40 @@ test('sorts organization grants by date', async () => {
 
   instance.close();
 });
+
+test('filter organization grants funded/received by name', async () => {
+  const { uri, instance } = await createServerInstance();
+
+  const res = await request(
+    uri,
+    `
+query filterOrganizationGrants {
+  organization(id: 91) {
+    grantsFunded(
+      limit: 10,
+      orderByDirection: ASC,
+      orderBy: dateFrom,
+      textLike: { description: "grant 2 description" }
+    ) {
+      description
+    }
+  }
+}
+`
+  );
+
+  expect(res).toEqual({
+    organization: {
+      grantsFunded: [
+        {
+          description: 'grant 2 description',
+        },
+        {
+          description: 'grant 2 description',
+        },
+      ],
+    },
+  });
+
+  instance.close();
+});

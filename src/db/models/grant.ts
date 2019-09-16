@@ -1,5 +1,8 @@
 import * as Sequelize from 'sequelize';
+import { escape } from 'sequelize/lib/sql-string';
 import * as decamelize from 'decamelize';
+
+import { GraphQLInputObjectType, GraphQLNonNull, GraphQLString } from 'graphql';
 
 import { Db } from './';
 
@@ -169,26 +172,34 @@ export default (sequelize: Sequelize.Sequelize) => {
   return Grant;
 };
 
-// Add a join to a grant query
-interface AddJoin {
+// Add a where stanza to a grant query
+interface AddWhere {
   (opts: any): string;
 }
 
-export const grantResolver = (db: Db, grantAddWhere?: AddJoin) => async (
+export const grantResolver = (db: Db, grantAddWhere?: AddWhere) => async (
   opts,
-  { limit, offset, orderBy, orderByDirection },
+  { limit, offset, orderBy, orderByDirection, textLike = {} },
   context,
   info
 ): Promise<GrantInstance[]> => {
-  let where = '';
+  let wheres: string[] = [];
+
   if (grantAddWhere) {
-    where = grantAddWhere(opts);
+    wheres = [grantAddWhere(opts)];
   }
+
+  Object.keys(textLike).forEach(k =>
+    wheres.push(`${decamelize(k)} ILIKE ${escape(textLike[k])}`)
+  );
+
+  const whereFragment =
+    wheres.length > 0 ? `WHERE ${wheres.join(' AND ')}` : '';
 
   const results = await db.sequelize.query(
     `SELECT g.*
 FROM "grant" g
-${where}
+${whereFragment}
 ORDER BY "${decamelize(orderBy)}" ${orderByDirection}
 LIMIT :limit
 OFFSET :offset`,
@@ -215,4 +226,32 @@ export const singleGrantResolver = getId => async (
   return context.getGrantById.load(getId(opts));
 };
 
-export const grantArgs = ledgerListArgs('Grant', Object.keys(grantColumns));
+const textColumns = Object.keys(grantColumns).reduce((acc, cur) => {
+  if (
+    grantColumns[cur].type == Sequelize.TEXT ||
+    grantColumns[cur].type === Sequelize.STRING
+  ) {
+    return [...acc, cur];
+  }
+  return acc;
+}, []);
+
+const textLikeArgs = textColumns.reduce(
+  (acc, cur) => ({
+    ...acc,
+    [cur]: {
+      type: GraphQLString,
+    },
+  }),
+  {}
+);
+
+export const grantArgs = {
+  ...ledgerListArgs('Grant', Object.keys(grantColumns)),
+  textLike: {
+    type: new GraphQLInputObjectType({
+      name: 'TextLike',
+      fields: textLikeArgs,
+    }),
+  },
+};
