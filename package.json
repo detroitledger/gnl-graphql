@@ -28,7 +28,6 @@
     "pg": "^6.1.0",
     "pg-copy-streams": "1.2.0",
     "sequelize": "4.38.0",
-    "sqlite3": "^4.0.2",
     "toml": "^2.3.3"
   },
   "devDependencies": {
