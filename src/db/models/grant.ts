@@ -1,4 +1,12 @@
 import * as Sequelize from 'sequelize';
+import { escape } from 'sequelize/lib/sql-string';
+import * as decamelize from 'decamelize';
+
+import { GraphQLInputObjectType, GraphQLNonNull, GraphQLString } from 'graphql';
+
+import { Db } from './';
+
+import { ledgerListArgs, MAX_LIMIT } from '../../helpers';
 
 import { OrganizationInstance, OrganizationAttributes } from './organization';
 import { NewsInstance, NewsAttributes } from './news';
@@ -53,54 +61,56 @@ export interface LegacyData {
 export type GrantInstance = Sequelize.Instance<GrantAttributes> &
   GrantAttributes;
 
+const grantColumns = {
+  uuid: {
+    type: Sequelize.UUID,
+    allowNull: true,
+    defaultValue: Sequelize.UUIDV4,
+  },
+  from: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+    references: { model: 'organization', key: 'id' },
+  },
+  to: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+    references: { model: 'organization', key: 'id' },
+  },
+  dateFrom: {
+    type: Sequelize.DATEONLY,
+    allowNull: true,
+    field: 'date_from',
+  },
+  dateTo: {
+    type: Sequelize.DATEONLY,
+    allowNull: true,
+    field: 'date_to',
+  },
+  amount: { type: Sequelize.BIGINT, allowNull: true },
+  source: { type: Sequelize.TEXT, allowNull: true },
+  description: { type: Sequelize.TEXT, allowNull: true },
+  internalNotes: {
+    type: Sequelize.TEXT,
+    allowNull: true,
+    field: 'internal_notes',
+  },
+  legacyData: {
+    type: Sequelize.JSON,
+    allowNull: true,
+    field: 'legacy_data',
+  },
+  federalAwardId: {
+    type: Sequelize.STRING,
+    allowNull: true,
+    field: 'federal_award_id',
+  },
+};
+
 export default (sequelize: Sequelize.Sequelize) => {
   let Grant = sequelize.define<GrantInstance, GrantAttributes>(
     'Grant',
-    {
-      uuid: {
-        type: Sequelize.UUID,
-        allowNull: true,
-        defaultValue: Sequelize.UUIDV4,
-      },
-      from: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: { model: sequelize.models.organization, key: 'id' },
-      },
-      to: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: { model: sequelize.models.organization, key: 'id' },
-      },
-      dateFrom: {
-        type: Sequelize.DATEONLY,
-        allowNull: true,
-        field: 'date_from',
-      },
-      dateTo: {
-        type: Sequelize.DATEONLY,
-        allowNull: true,
-        field: 'date_to',
-      },
-      amount: { type: Sequelize.BIGINT, allowNull: true },
-      source: { type: Sequelize.TEXT, allowNull: true },
-      description: { type: Sequelize.TEXT, allowNull: true },
-      internalNotes: {
-        type: Sequelize.TEXT,
-        allowNull: true,
-        field: 'internal_notes',
-      },
-      legacyData: {
-        type: Sequelize.JSON,
-        allowNull: true,
-        field: 'legacy_data',
-      },
-      federalAwardId: {
-        type: Sequelize.STRING,
-        allowNull: true,
-        field: 'federal_award_id',
-      },
-    },
+    grantColumns,
     {
       createdAt: 'created_at',
       updatedAt: 'updated_at',
@@ -160,4 +170,88 @@ export default (sequelize: Sequelize.Sequelize) => {
   };
 
   return Grant;
+};
+
+// Add a where stanza to a grant query
+interface AddWhere {
+  (opts: any): string;
+}
+
+export const grantResolver = (db: Db, grantAddWhere?: AddWhere) => async (
+  opts,
+  { limit, offset, orderBy, orderByDirection, textLike = {} },
+  context,
+  info
+): Promise<GrantInstance[]> => {
+  let wheres: string[] = [];
+
+  if (grantAddWhere) {
+    wheres = [grantAddWhere(opts)];
+  }
+
+  Object.keys(textLike).forEach(k =>
+    wheres.push(`${decamelize(k)} ILIKE ${escape(textLike[k])}`)
+  );
+
+  const whereFragment =
+    wheres.length > 0 ? `WHERE ${wheres.join(' AND ')}` : '';
+
+  const results = await db.sequelize.query(
+    `SELECT g.*
+FROM "grant" g
+${whereFragment}
+ORDER BY "${decamelize(orderBy)}" ${orderByDirection}
+LIMIT :limit
+OFFSET :offset`,
+    {
+      type: db.Sequelize.QueryTypes.SELECT,
+      model: db.Grant,
+      mapToModel: true,
+      replacements: {
+        limit: Math.min(limit, MAX_LIMIT),
+        offset,
+      },
+    }
+  );
+
+  return results;
+};
+
+export const singleGrantResolver = getId => async (
+  opts,
+  args,
+  context,
+  info
+): Promise<GrantInstance> => {
+  return context.getGrantById.load(getId(opts));
+};
+
+const textColumns = Object.keys(grantColumns).reduce((acc, cur) => {
+  if (
+    grantColumns[cur].type == Sequelize.TEXT ||
+    grantColumns[cur].type === Sequelize.STRING
+  ) {
+    return [...acc, cur];
+  }
+  return acc;
+}, []);
+
+const textLikeArgs = textColumns.reduce(
+  (acc, cur) => ({
+    ...acc,
+    [cur]: {
+      type: GraphQLString,
+    },
+  }),
+  {}
+);
+
+export const grantArgs = {
+  ...ledgerListArgs('Grant', Object.keys(grantColumns)),
+  textLike: {
+    type: new GraphQLInputObjectType({
+      name: 'TextLike',
+      fields: textLikeArgs,
+    }),
+  },
 };

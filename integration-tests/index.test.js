@@ -8,6 +8,8 @@ import * as orgsWithGrants from './test-queries/orgs-with-grants';
 import * as someNews from './test-queries/some-news';
 import * as boardTerms from './test-queries/board-terms';
 import * as moreMeta from './test-queries/more-meta';
+import * as orgNameLike from './test-queries/org-name-like';
+import * as sortOrgGrantsByDate from './test-queries/sort-org-grants-by-date';
 
 const createServerInstance = async () => {
   const db = dbFactory();
@@ -67,18 +69,18 @@ test('organization_meta updates automatically', async () => {
   const { uri, instance, db } = await createServerInstance();
   const query = `
 query foo {
-	giver: organizationMetas(id: 3) {
-		countGrantsTo
-		countGrantsFrom
-		countDistinctFunders
-		countDistinctRecipients
-	}
-	receiver: organizationMetas(id: 91) {
-		countGrantsTo
-		countGrantsFrom
-		countDistinctFunders
-		countDistinctRecipients
-	}
+  giver: organization(id: 3) {
+    countGrantsTo
+    countGrantsFrom
+    countDistinctFunders
+    countDistinctRecipients
+  }
+  receiver: organization(id: 91) {
+    countGrantsTo
+    countGrantsFrom
+    countDistinctFunders
+    countDistinctRecipients
+  }
 }`;
 
   const resBefore = await request(uri, query);
@@ -98,40 +100,89 @@ query foo {
 
   // Assert
   expect(resBefore).toEqual({
-    giver: [
-      {
-        countGrantsTo: 0,
-        countGrantsFrom: 0,
-        countDistinctFunders: 0,
-        countDistinctRecipients: 0,
-      },
-    ],
-    receiver: [
-      {
-        countGrantsTo: 17,
-        countGrantsFrom: 17,
-        countDistinctFunders: 17,
-        countDistinctRecipients: 17,
-      },
-    ],
+    giver: {
+      countGrantsTo: 0,
+      countGrantsFrom: 0,
+      countDistinctFunders: 0,
+      countDistinctRecipients: 0,
+    },
+    receiver: {
+      countGrantsTo: 17,
+      countGrantsFrom: 17,
+      countDistinctFunders: 17,
+      countDistinctRecipients: 17,
+    },
   });
   expect(resAfter).toEqual({
-    giver: [
-      {
-        countGrantsTo: 0,
-        countGrantsFrom: 1,
-        countDistinctFunders: 0,
-        countDistinctRecipients: 1,
-      },
-    ],
-    receiver: [
-      {
-        countGrantsTo: 18,
-        countGrantsFrom: 17,
-        countDistinctFunders: 18,
-        countDistinctRecipients: 17,
-      },
-    ],
+    giver: {
+      countGrantsTo: 0,
+      countGrantsFrom: 1,
+      countDistinctFunders: 0,
+      countDistinctRecipients: 1,
+    },
+    receiver: {
+      countGrantsTo: 18,
+      countGrantsFrom: 17,
+      countDistinctFunders: 18,
+      countDistinctRecipients: 17,
+    },
+  });
+
+  instance.close();
+});
+
+test('filters organizations by name', async () => {
+  const { uri, instance } = await createServerInstance();
+
+  const res = await request(uri, orgNameLike.query);
+
+  expect(res).toEqual(orgNameLike.expected.data);
+
+  instance.close();
+});
+
+test('sorts organization grants by date', async () => {
+  const { uri, instance } = await createServerInstance();
+
+  const res = await request(uri, sortOrgGrantsByDate.query);
+
+  expect(res).toEqual(sortOrgGrantsByDate.expected.data);
+
+  instance.close();
+});
+
+test('filter organization grants funded/received by name', async () => {
+  const { uri, instance } = await createServerInstance();
+
+  const res = await request(
+    uri,
+    `
+query filterOrganizationGrants {
+  organization(id: 91) {
+    grantsFunded(
+      limit: 10,
+      orderByDirection: ASC,
+      orderBy: dateFrom,
+      textLike: { description: "grant 2 description" }
+    ) {
+      description
+    }
+  }
+}
+`
+  );
+
+  expect(res).toEqual({
+    organization: {
+      grantsFunded: [
+        {
+          description: 'grant 2 description',
+        },
+        {
+          description: 'grant 2 description',
+        },
+      ],
+    },
   });
 
   instance.close();

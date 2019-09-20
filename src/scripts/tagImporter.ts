@@ -42,6 +42,7 @@ function doImport() {
           chunk = stream.read();
 
           while (chunk !== null) {
+            // @ts-ignore
             await cfg.model.create(chunk);
             chunk = stream.read();
           }

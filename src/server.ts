@@ -1,3 +1,4 @@
+import * as Sequelize from 'sequelize';
 import { GraphQLServer } from 'graphql-yoga';
 import { createContext, EXPECTED_OPTIONS_KEY } from 'dataloader-sequelize';
 import {
@@ -11,78 +12,90 @@ import {
   graphql,
   GraphQLSchema,
   GraphQLObjectType,
-  GraphQLString,
   GraphQLInt,
   GraphQLList,
 } from 'graphql';
+
+import { escape } from 'sequelize/lib/sql-string';
 
 import * as GraphQLBigInt from 'graphql-bigint';
 
 import { Db } from './db/models';
 
+import {
+  organizationResolver,
+  organizationArgs,
+  organizationSpecialFields,
+  singleOrganizationResolver,
+  createGetOrganizationByIdDataloader,
+  createGetOrganizationByUuidDataloader,
+} from './db/models/organization';
+import { grantResolver, grantArgs } from './db/models/grant';
+import {
+  grantTagResolver,
+  grantTagArgs,
+  grantTagSpecialFields,
+} from './db/models/grantTag';
+import {
+  organizationTagResolver,
+  organizationTagArgs,
+  organizationTagSpecialFields,
+} from './db/models/organizationTag';
+import {
+  nteeGrantTypeResolver,
+  nteeGrantTypeArgs,
+  nteeGrantTypeSpecialFields,
+} from './db/models/nteeGrantType';
+import {
+  nteeOrganizationTypeResolver,
+  nteeOrganizationTypeArgs,
+  nteeOrganizationTypeSpecialFields,
+} from './db/models/nteeOrganizationType';
+
 export default function createServer(db: Db): GraphQLServer {
-  const orderByMultiResolver = (opts, args) => {
-    const options = {
-      order: [],
-      ...opts,
-    };
-
-    if (args.orderByMulti) {
-      options.order = options.order.concat(
-        args.orderByMulti.map(arg => [
-          arg[0],
-          arg[1] === 'ASC' ? 'ASC NULLS LAST' : 'DESC NULLS LAST',
-        ])
-      );
-    }
-
-    return options;
-  };
-
-  const organizationNameILikeResolver = (opts, args) => {
-    if (args.organizationNameILike)
-      opts.include = [
-        {
-          required: true,
-          model: db.Organization,
-          where: {
-            name: { [db.sequelize.Op.iLike]: args.organizationNameILike },
-          },
-        },
-      ];
-    return opts;
-  };
-
   resolver.contextToOptions = { [EXPECTED_OPTIONS_KEY]: EXPECTED_OPTIONS_KEY };
 
+  // Types
   const shallowOrganizationType = new GraphQLObjectType({
     name: 'ShallowOrganization',
     description: 'An organization, without grants funded or received',
     fields: attributeFields(db.Organization, { exclude: ['id'] }),
   });
 
+  const organizationTagType = new GraphQLObjectType({
+    name: 'OrganizationTag',
+    description: 'Tag associated with an organization',
+    fields: {
+      ...attributeFields(db.OrganizationTag, { exclude: ['id'] }),
+      ...organizationTagSpecialFields,
+    },
+  });
+
   const grantTagType = new GraphQLObjectType({
     name: 'GrantTag',
     description: 'Tag associated with a grant',
-    fields: attributeFields(db.GrantTag, { exclude: ['id'] }),
+    fields: {
+      ...attributeFields(db.GrantTag, { exclude: ['id'] }),
+      ...grantTagSpecialFields,
+    },
   });
 
   const nteeGrantTypeType = new GraphQLObjectType({
     name: 'NteeGrantType',
     description: 'NTEE classification of a grant',
-    fields: attributeFields(db.NteeGrantType, { exclude: ['id'] }),
-  });
-
-  const organizationTagType = new GraphQLObjectType({
-    name: 'OrganizationTag',
-    description: 'Tag associated with an organization',
-    fields: attributeFields(db.OrganizationTag, { exclude: ['id'] }),
+    fields: {
+      ...attributeFields(db.NteeGrantType, { exclude: ['id'] }),
+      ...nteeGrantTypeSpecialFields,
+    },
   });
 
   const nteeOrganizationTypeType = new GraphQLObjectType({
     name: 'NteeOrganizationType',
     description: 'NTEE classification of an organization',
-    fields: attributeFields(db.NteeOrganizationType, { exclude: ['id'] }),
+    fields: {
+      ...attributeFields(db.NteeOrganizationType, { exclude: ['id'] }),
+      ...nteeOrganizationTypeSpecialFields,
+    },
   });
 
   const personType = new GraphQLObjectType({
@@ -104,8 +117,8 @@ export default function createServer(db: Db): GraphQLServer {
       },
       organization: {
         type: shallowOrganizationType,
-        // @ts-ignore
-        resolve: resolver(db.BoardTerm.Organization),
+        args: organizationArgs,
+        resolve: singleOrganizationResolver(),
       },
     },
   });
@@ -117,23 +130,23 @@ export default function createServer(db: Db): GraphQLServer {
       ...attributeFields(db.Grant, { exclude: ['id'] }),
       from: {
         type: shallowOrganizationType,
-        // @ts-ignore
-        resolve: resolver(db.Grant.Funder),
+        args: organizationArgs,
+        resolve: singleOrganizationResolver(opts => opts.get('from')),
       },
       to: {
         type: shallowOrganizationType,
-        // @ts-ignore
-        resolve: resolver(db.Grant.Recipient),
+        args: organizationArgs,
+        resolve: singleOrganizationResolver(opts => opts.get('to')),
       },
       nteeGrantTypes: {
         type: new GraphQLList(nteeGrantTypeType),
-        // @ts-ignore
-        resolve: resolver(db.Grant.NteeGrantTypes),
+        args: nteeGrantTypeArgs,
+        resolve: nteeGrantTypeResolver(db, { limitToGrantId: true }),
       },
       grantTags: {
         type: new GraphQLList(grantTagType),
-        // @ts-ignore
-        resolve: resolver(db.Grant.GrantTags),
+        args: grantTagArgs,
+        resolve: grantTagResolver(db, { limitToGrantId: true }),
       },
       amount: { type: GraphQLBigInt },
     },
@@ -152,8 +165,14 @@ export default function createServer(db: Db): GraphQLServer {
       ...attributeFields(db.News, { exclude: ['id'] }),
       organizations: {
         type: new GraphQLList(shallowOrganizationType),
-        // @ts-ignore
-        resolve: resolver(db.News.Organizations),
+        args: organizationArgs,
+        resolve: organizationResolver(
+          db,
+          opts =>
+            `INNER JOIN news_organizations no ON no.news_id=${
+              opts.id
+            } AND no.organization_id=o.id`
+        ),
       },
       grants: {
         type: new GraphQLList(grantType),
@@ -168,6 +187,7 @@ export default function createServer(db: Db): GraphQLServer {
     description: 'An organization, duh',
     fields: {
       ...attributeFields(db.Organization, { exclude: ['id'] }),
+      ...organizationSpecialFields,
       boardTerms: {
         type: new GraphQLList(boardTermType),
         // @ts-ignore
@@ -175,13 +195,13 @@ export default function createServer(db: Db): GraphQLServer {
       },
       grantsFunded: {
         type: new GraphQLList(grantType),
-        // @ts-ignore
-        resolve: resolver(db.Organization.GrantsFunded),
+        args: grantArgs,
+        resolve: grantResolver(db, opts => `g.from=${opts.get('id')}`),
       },
       grantsReceived: {
         type: new GraphQLList(grantType),
-        // @ts-ignore
-        resolve: resolver(db.Organization.GrantsReceived),
+        args: grantArgs,
+        resolve: grantResolver(db, opts => `g.to=${opts.get('id')}`),
       },
       forms990: {
         type: new GraphQLList(form990Type),
@@ -195,26 +215,15 @@ export default function createServer(db: Db): GraphQLServer {
       },
       nteeOrganizationTypes: {
         type: new GraphQLList(nteeOrganizationTypeType),
-        // @ts-ignore
-        resolve: resolver(db.Organization.NteeOrganizationTypes),
+        args: nteeOrganizationTypeArgs,
+        resolve: nteeOrganizationTypeResolver(db, {
+          limitToOrganizationId: true,
+        }),
       },
       organizationTags: {
         type: new GraphQLList(organizationTagType),
-        // @ts-ignore
-        resolve: resolver(db.Organization.OrganizationTags),
-      },
-    },
-  });
-
-  const organizationMetaType = new GraphQLObjectType({
-    name: 'OrganizationMeta',
-    description: 'Extra org info',
-    fields: {
-      ...attributeFields(db.OrganizationMeta, { exclude: ['id'] }),
-      organization: {
-        type: organizationType,
-        // @ts-ignore
-        resolve: resolver(db.OrganizationMeta.Organization),
+        args: organizationTagArgs,
+        resolve: organizationTagResolver(db, { limitToOrganizationId: true }),
       },
     },
   });
@@ -229,17 +238,17 @@ export default function createServer(db: Db): GraphQLServer {
               name: 'Stats',
               description: 'gnl stats',
               fields: {
-                total_num_grants: { type: GraphQLInt },
-                total_num_orgs: { type: GraphQLInt },
-                total_grants_dollars: { type: GraphQLBigInt },
+                totalNumGrants: { type: GraphQLInt },
+                totalNumOrgs: { type: GraphQLInt },
+                totalGrantsDollars: { type: GraphQLBigInt },
               },
             }),
             resolve: async () => {
               const results = await Promise.all(
                 [
-                  'SELECT COUNT(id) AS total_num_grants FROM "grant"',
-                  'SELECT COUNT(id) AS total_num_orgs FROM organization',
-                  'SELECT SUM(amount) AS total_grants_dollars FROM "grant"',
+                  'SELECT COUNT(id) AS totalNumGrants FROM "grant"',
+                  'SELECT COUNT(id) AS totalNumOrgs FROM organization',
+                  'SELECT SUM(amount) AS totalGrantsDollars FROM "grant"',
                 ].map(q =>
                   db.sequelize.query(q, {
                     type: db.Sequelize.QueryTypes.SELECT,
@@ -254,9 +263,9 @@ export default function createServer(db: Db): GraphQLServer {
             type: organizationType,
             args: defaultArgs({
               ...db.Organization,
-              primaryKeyAttributes: ['uuid'],
+              primaryKeyAttributes: ['id', 'uuid'],
             }),
-            resolve: resolver(db.Organization),
+            resolve: singleOrganizationResolver(),
           },
           news: {
             type: new GraphQLList(newsType),
@@ -268,37 +277,8 @@ export default function createServer(db: Db): GraphQLServer {
           },
           organizations: {
             type: new GraphQLList(organizationType),
-            args: {
-              ...defaultListArgs(),
-              ...defaultArgs(db.Organization),
-              orderByMulti: {
-                type: new GraphQLList(new GraphQLList(GraphQLString)),
-              },
-            },
-            resolve: resolver(db.Organization, {
-              before: orderByMultiResolver,
-            }),
-          },
-          organizationMetas: {
-            type: new GraphQLList(organizationMetaType),
-            args: {
-              ...defaultListArgs(),
-              ...defaultArgs(db.OrganizationMeta),
-              orderByMulti: {
-                type: new GraphQLList(new GraphQLList(GraphQLString)),
-              },
-              organizationNameILike: {
-                type: GraphQLString,
-              },
-            },
-            resolve: resolver(db.OrganizationMeta, {
-              before: (opts, args) => {
-                return organizationNameILikeResolver(
-                  orderByMultiResolver(opts, args),
-                  args
-                );
-              },
-            }),
+            args: organizationArgs,
+            resolve: organizationResolver(db),
           },
           grant: {
             type: grantType,
@@ -316,17 +296,41 @@ export default function createServer(db: Db): GraphQLServer {
             },
             resolve: resolver(db.Grant),
           },
+          nteeOrganizationTypes: {
+            type: new GraphQLList(nteeOrganizationTypeType),
+            args: nteeOrganizationTypeArgs,
+            resolve: nteeOrganizationTypeResolver(db),
+          },
+          organizationTags: {
+            type: new GraphQLList(organizationTagType),
+            args: organizationTagArgs,
+            resolve: organizationTagResolver(db),
+          },
+          nteeGrantTypes: {
+            type: new GraphQLList(nteeGrantTypeType),
+            args: nteeGrantTypeArgs,
+            resolve: nteeGrantTypeResolver(db),
+          },
+          grantTags: {
+            type: new GraphQLList(grantTagType),
+            args: grantTagArgs,
+            resolve: grantTagResolver(db),
+          },
         },
       }),
     }),
     context(req) {
       // For each request, create a DataLoader context for Sequelize to use
       const dataloaderContext = createContext(db.sequelize);
+      const getOrganizationById = createGetOrganizationByIdDataloader(db);
+      const getOrganizationByUuid = createGetOrganizationByUuidDataloader(db);
 
       // Using the same EXPECTED_OPTIONS_KEY, store the DataLoader context
       // in the global request context
       return {
         [EXPECTED_OPTIONS_KEY]: dataloaderContext,
+        getOrganizationById,
+        getOrganizationByUuid,
       };
     },
   });

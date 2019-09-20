@@ -118,4 +118,10 @@ export const doImport = async () => {
   }
 };
 
-doImport();
+doImport()
+  .then(() => process.exit(0))
+  .catch(e => {
+    console.error('ERROR');
+    console.error(e);
+    process.exit(1);
+  });
