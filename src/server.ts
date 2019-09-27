@@ -10,17 +10,24 @@ import {
 
 import {
   graphql,
+  GraphQLInputObjectType,
+  GraphQLNonNull,
   GraphQLSchema,
   GraphQLObjectType,
   GraphQLInt,
   GraphQLList,
+  GraphQLString,
 } from 'graphql';
+
+import { OAuth2Client } from 'google-auth-library';
 
 import { escape } from 'sequelize/lib/sql-string';
 
 import * as GraphQLBigInt from 'graphql-bigint';
 
 import { Db } from './db/models';
+
+import { getTokenFromReq, getUserFromToken } from './auth';
 
 import {
   organizationResolver,
@@ -29,8 +36,9 @@ import {
   singleOrganizationResolver,
   createGetOrganizationByIdDataloader,
   createGetOrganizationByUuidDataloader,
+  OrganizationAttributes,
 } from './db/models/organization';
-import { grantResolver, grantArgs } from './db/models/grant';
+import { grantResolver, grantArgs, GrantAttributes } from './db/models/grant';
 import {
   grantTagResolver,
   grantTagArgs,
@@ -52,7 +60,10 @@ import {
   nteeOrganizationTypeSpecialFields,
 } from './db/models/nteeOrganizationType';
 
-export default function createServer(db: Db): GraphQLServer {
+export default function createServer(
+  db: Db,
+  oauthClient: OAuth2Client
+): GraphQLServer {
   resolver.contextToOptions = { [EXPECTED_OPTIONS_KEY]: EXPECTED_OPTIONS_KEY };
 
   // Types
@@ -152,6 +163,17 @@ export default function createServer(db: Db): GraphQLServer {
     },
   });
 
+  const grantInputType = new GraphQLInputObjectType({
+    name: 'GrantInput',
+    fields: {
+      ...attributeFields(db.Grant, {
+        exclude: ['id', 'uuid', 'created_at', 'updated_at'],
+      }),
+      from: { type: GraphQLString },
+      to: { type: GraphQLString },
+    },
+  });
+
   const form990Type = new GraphQLObjectType({
     name: 'Form990',
     description: 'One row from the IRS combined table',
@@ -226,6 +248,13 @@ export default function createServer(db: Db): GraphQLServer {
         resolve: organizationTagResolver(db, { limitToOrganizationId: true }),
       },
     },
+  });
+
+  const organizationInputType = new GraphQLInputObjectType({
+    name: 'OrganizationInput',
+    fields: attributeFields(db.Organization, {
+      exclude: ['id', 'uuid', 'created_at', 'updated_at'],
+    }),
   });
 
   return new GraphQLServer({
@@ -318,12 +347,70 @@ export default function createServer(db: Db): GraphQLServer {
           },
         },
       }),
+      mutation: new GraphQLObjectType({
+        name: 'Mutation',
+        fields: () => ({
+          addOrganization: {
+            type: organizationType,
+            args: {
+              input: { type: new GraphQLNonNull(organizationInputType) },
+            },
+            resolve: async (source, { input }, context) => {
+              const authenticatedUser = await getUserFromToken(
+                context.token,
+                context.oauthClient
+              );
+
+              if (!authenticatedUser) {
+                return null;
+              }
+
+              const newOrg = await db.Organization.create(input);
+              return context.dataloader_sequelize_context.loaders.Organization.byId.load(
+                newOrg.id
+              );
+            },
+          },
+          addGrant: {
+            type: grantType,
+            args: { input: { type: new GraphQLNonNull(grantInputType) } },
+            resolve: async (source, { input }, context) => {
+              const authenticatedUser = await getUserFromToken(
+                context.token,
+                context.oauthClient
+              );
+
+              if (!authenticatedUser) {
+                return null;
+              }
+
+              const from = await db.Organization.find({
+                where: { uuid: input.from },
+              });
+              const to = await db.Organization.find({
+                where: { uuid: input.to },
+              });
+
+              const newGrant = await db.Grant.create({
+                ...input,
+                from: from!.id,
+                to: to!.id,
+              });
+              return context.dataloader_sequelize_context.loaders.Grant.byId.load(
+                newGrant.id
+              );
+            },
+          },
+        }),
+      }),
     }),
-    context(req) {
+    context: function context(ctx) {
       // For each request, create a DataLoader context for Sequelize to use
       const dataloaderContext = createContext(db.sequelize);
       const getOrganizationById = createGetOrganizationByIdDataloader(db);
       const getOrganizationByUuid = createGetOrganizationByUuidDataloader(db);
+
+      const token = getTokenFromReq(ctx.request);
 
       // Using the same EXPECTED_OPTIONS_KEY, store the DataLoader context
       // in the global request context
@@ -331,6 +418,8 @@ export default function createServer(db: Db): GraphQLServer {
         [EXPECTED_OPTIONS_KEY]: dataloaderContext,
         getOrganizationById,
         getOrganizationByUuid,
+        token,
+        oauthClient,
       };
     },
   });

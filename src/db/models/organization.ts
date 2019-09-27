@@ -2,6 +2,7 @@ import * as Sequelize from 'sequelize';
 import { escape } from 'sequelize/lib/sql-string';
 import * as decamelize from 'decamelize';
 import * as DataLoader from 'dataloader';
+import { attributeFields } from 'graphql-sequelize';
 
 import { Db } from './';
 
@@ -9,6 +10,7 @@ import {
   GraphQLFieldConfigMap,
   GraphQLInt,
   GraphQLList,
+  GraphQLInputObjectType,
   GraphQLString,
 } from 'graphql';
 
