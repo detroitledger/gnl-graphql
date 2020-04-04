@@ -275,9 +275,9 @@ export default function createServer(
             resolve: async () => {
               const results = await Promise.all(
                 [
-                  'SELECT COUNT(id) AS totalNumGrants FROM "grant"',
-                  'SELECT COUNT(id) AS totalNumOrgs FROM organization',
-                  'SELECT SUM(amount) AS totalGrantsDollars FROM "grant"',
+                  'SELECT COUNT(id) AS total_num_grants FROM "grant"',
+                  'SELECT COUNT(id) AS total_num_orgs FROM organization',
+                  'SELECT SUM(amount) AS total_grants_dollars FROM "grant"',
                 ].map(q =>
                   db.sequelize.query(q, {
                     type: db.Sequelize.QueryTypes.SELECT,
@@ -285,7 +285,11 @@ export default function createServer(
                 )
               );
 
-              return results.reduce((acc, cur) => ({ ...acc, ...cur[0] }), {});
+              return {
+                totalNumGrants: results[0][0].total_num_grants,
+                totalNumOrgs: results[1][0].total_num_orgs,
+                totalGrantsDollars: results[2][0].total_grants_dollars,
+              };
             },
           },
           organization: {
