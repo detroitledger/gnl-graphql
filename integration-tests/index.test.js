@@ -187,3 +187,30 @@ query filterOrganizationGrants {
 
   instance.close();
 });
+
+test('stats', async () => {
+  const { uri, instance } = await createServerInstance();
+
+  const res = await request(
+    uri,
+    `
+query homepage {
+  stats {
+    totalNumOrgs
+    totalNumGrants
+    totalGrantsDollars
+  }
+}
+`
+  );
+
+  expect(res).toEqual({
+    stats: {
+      totalNumOrgs: 100,
+      totalNumGrants: 738,
+      totalGrantsDollars: 49800
+    }
+  });
+
+  instance.close();
+});
