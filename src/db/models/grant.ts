@@ -197,9 +197,17 @@ export const grantResolver = (db: Db, grantAddWhere?: AddWhere) => async (
     wheres.length > 0 ? `WHERE ${wheres.join(' AND ')}` : '';
 
   const results = await db.sequelize.query(
-    `SELECT g.*
+    `
+SELECT
+  g.*,
+  o_from.name AS o_from_name,
+  o_to.name AS o_to_name
 FROM "grant" g
-${whereFragment}
+INNER JOIN "organization" o_from
+ON g.from=o_from.id
+INNER JOIN "organization" o_to
+ON g.to=o_to.id
+${unAlias(whereFragment)}
 ORDER BY "${decamelize(orderBy)}" ${orderByDirection}
 LIMIT :limit
 OFFSET :offset`,
@@ -217,6 +225,12 @@ OFFSET :offset`,
   return results;
 };
 
+const unAlias = whereFragment =>
+  whereFragment
+    .replace('o_from_name', 'o_from.name')
+    .replace('o_to_name', 'o_to.name')
+    .replace('description', 'g.description');
+
 export const singleGrantResolver = getId => async (
   opts,
   args,
@@ -226,15 +240,18 @@ export const singleGrantResolver = getId => async (
   return context.getGrantById.load(getId(opts));
 };
 
-const textColumns = Object.keys(grantColumns).reduce((acc, cur) => {
-  if (
-    grantColumns[cur].type == Sequelize.TEXT ||
-    grantColumns[cur].type === Sequelize.STRING
-  ) {
-    return [...acc, cur];
-  }
-  return acc;
-}, []);
+const textColumns = Object.keys(grantColumns).reduce(
+  (acc, cur) => {
+    if (
+      grantColumns[cur].type == Sequelize.TEXT ||
+      grantColumns[cur].type === Sequelize.STRING
+    ) {
+      return [...acc, cur];
+    }
+    return acc;
+  },
+  ['oFromName', 'oToName']
+);
 
 const textLikeArgs = textColumns.reduce(
   (acc, cur) => ({

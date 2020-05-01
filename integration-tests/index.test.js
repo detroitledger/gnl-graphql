@@ -151,7 +151,7 @@ test('sorts organization grants by date', async () => {
   instance.close();
 });
 
-test('filter organization grants funded/received by name', async () => {
+test('filter organization grants funded/received by description', async () => {
   const { uri, instance } = await createServerInstance();
 
   const res = await request(
@@ -188,6 +188,67 @@ query filterOrganizationGrants {
   instance.close();
 });
 
+test('filter organization grants funded/received by name', async () => {
+  const { uri, instance } = await createServerInstance();
+
+  const res = await request(
+    uri,
+    `
+query filterOrganizationGrants {
+  organization(id: 93) {
+    grantsFunded(
+      limit: 10,
+      orderByDirection: ASC,
+      orderBy: dateFrom,
+      textLike: { oToName: "test organization 8%" }
+    ) {
+      to { name }
+    }
+  }
+}
+`
+  );
+
+  expect(res).toEqual({
+    organization: {
+      grantsFunded: [
+        {
+          to: {
+            name: 'test organization 89',
+          },
+        },
+        {
+          to: {
+            name: 'test organization 88',
+          },
+        },
+        {
+          to: {
+            name: 'test organization 87',
+          },
+        },
+        {
+          to: {
+            name: 'test organization 86',
+          },
+        },
+        {
+          to: {
+            name: 'test organization 85',
+          },
+        },
+        {
+          to: {
+            name: 'test organization 84',
+          },
+        },
+      ],
+    },
+  });
+
+  instance.close();
+});
+
 test('stats', async () => {
   const { uri, instance } = await createServerInstance();
 
@@ -208,8 +269,8 @@ query homepage {
     stats: {
       totalNumOrgs: 100,
       totalNumGrants: 738,
-      totalGrantsDollars: 49800
-    }
+      totalGrantsDollars: 49800,
+    },
   });
 
   instance.close();
