@@ -354,9 +354,9 @@ export const createGetOrganizationByIdDataloader = (
 
 export const createGetOrganizationByUuidDataloader = (
   db: Db
-): DataLoader<number, OrganizationInstance> => {
+): DataLoader<string, OrganizationInstance> => {
   return new DataLoader(
-    async (uuids: number[]): Promise<OrganizationInstance[]> => {
+    async (uuids: string[]): Promise<OrganizationInstance[]> => {
       const results = await db.sequelize.query(
         `SELECT o.*, ${specialCols(organizationSpecialFields, 'om').join(',')}
   FROM organization o
