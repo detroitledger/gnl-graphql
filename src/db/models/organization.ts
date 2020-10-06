@@ -28,6 +28,7 @@ import {
   OrganizationTagInstance,
   OrganizationTagAttributes,
 } from './organizationTag';
+import { GrantTagInstance, GrantTagAttributes } from './grantTag';
 import { Form990Instance, Form990Attributes } from './form990';
 import { BoardTermInstance, BoardTermAttributes } from './boardTerm';
 

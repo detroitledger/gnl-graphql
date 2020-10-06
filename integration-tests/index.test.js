@@ -249,6 +249,44 @@ query filterOrganizationGrants {
   instance.close();
 });
 
+test("list grant tags related to a specific organization's grants", async () => {
+  const { uri, instance } = await createServerInstance();
+
+  const res = await request(
+    uri,
+    `
+query organizationGrantTags {
+  organization(id: 92) {
+    organizationGrantTags {
+      name
+    }
+  }
+}
+`
+  );
+
+  expect(res).toEqual({
+    organization: {
+      organizationGrantTags: [
+        {
+          name: 'test grant tag 0',
+        },
+        {
+          name: 'test grant tag 1',
+        },
+        {
+          name: 'test grant tag 2',
+        },
+        {
+          name: 'test grant tag 3',
+        },
+      ],
+    },
+  });
+
+  instance.close();
+});
+
 test('stats', async () => {
   const { uri, instance } = await createServerInstance();
 
