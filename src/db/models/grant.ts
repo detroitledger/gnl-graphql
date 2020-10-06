@@ -179,11 +179,12 @@ interface AddWhere {
 
 export const grantResolver = (db: Db, grantAddWhere?: AddWhere) => async (
   opts,
-  { limit, offset, orderBy, orderByDirection, textLike = {} },
+  { limit, offset, orderBy, orderByDirection, textLike = {}, havingTag },
   context,
   info
 ): Promise<GrantInstance[]> => {
   let wheres: string[] = [];
+  let joins: string[] = [];
 
   if (grantAddWhere) {
     wheres = [grantAddWhere(opts)];
@@ -193,8 +194,16 @@ export const grantResolver = (db: Db, grantAddWhere?: AddWhere) => async (
     wheres.push(`${decamelize(k)} ILIKE ${escape(textLike[k])}`)
   );
 
+  if (havingTag) {
+    joins.push(
+      `INNER JOIN grant_grant_tag ggt ON ggt.grant_id=g.id INNER JOIN grant_tag gt ON ggt.grant_tag_id=gt.id`
+    );
+    wheres.push(`gt.uuid=${escape(havingTag)}`);
+  }
+
   const whereFragment =
     wheres.length > 0 ? `WHERE ${wheres.join(' AND ')}` : '';
+  const joinFragment = joins.join('\n');
 
   const results = await db.sequelize.query(
     `
@@ -207,6 +216,7 @@ INNER JOIN "organization" o_from
 ON g.from=o_from.id
 INNER JOIN "organization" o_to
 ON g.to=o_to.id
+${joinFragment}
 ${unAlias(whereFragment)}
 ORDER BY "${decamelize(orderBy)}" ${orderByDirection}
 LIMIT :limit
@@ -270,5 +280,9 @@ export const grantArgs = {
       name: 'TextLike',
       fields: textLikeArgs,
     }),
+  },
+  havingTag: {
+    type: GraphQLString,
+    description: 'Only include grants with the given tag UUID',
   },
 };
