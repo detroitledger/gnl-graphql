@@ -179,11 +179,12 @@ interface AddWhere {
 
 export const grantResolver = (db: Db, grantAddWhere?: AddWhere) => async (
   opts,
-  { limit, offset, orderBy, orderByDirection, textLike = {} },
+  { limit, offset, orderBy, orderByDirection, textLike = {}, havingTag },
   context,
   info
 ): Promise<GrantInstance[]> => {
   let wheres: string[] = [];
+  let joins: string[] = [];
 
   if (grantAddWhere) {
     wheres = [grantAddWhere(opts)];
@@ -193,13 +194,30 @@ export const grantResolver = (db: Db, grantAddWhere?: AddWhere) => async (
     wheres.push(`${decamelize(k)} ILIKE ${escape(textLike[k])}`)
   );
 
+  if (havingTag) {
+    joins.push(
+      `INNER JOIN grant_grant_tag ggt ON ggt.grant_id=g.id INNER JOIN grant_tag gt ON ggt.grant_tag_id=gt.id`
+    );
+    wheres.push(`gt.uuid=${escape(havingTag)}`);
+  }
+
   const whereFragment =
     wheres.length > 0 ? `WHERE ${wheres.join(' AND ')}` : '';
+  const joinFragment = joins.join('\n');
 
   const results = await db.sequelize.query(
-    `SELECT g.*
+    `
+SELECT
+  g.*,
+  o_from.name AS o_from_name,
+  o_to.name AS o_to_name
 FROM "grant" g
-${whereFragment}
+INNER JOIN "organization" o_from
+ON g.from=o_from.id
+INNER JOIN "organization" o_to
+ON g.to=o_to.id
+${joinFragment}
+${unAlias(whereFragment)}
 ORDER BY "${decamelize(orderBy)}" ${orderByDirection}
 LIMIT :limit
 OFFSET :offset`,
@@ -217,6 +235,12 @@ OFFSET :offset`,
   return results;
 };
 
+const unAlias = whereFragment =>
+  whereFragment
+    .replace('o_from_name', 'o_from.name')
+    .replace('o_to_name', 'o_to.name')
+    .replace('description', 'g.description');
+
 export const singleGrantResolver = getId => async (
   opts,
   args,
@@ -226,15 +250,18 @@ export const singleGrantResolver = getId => async (
   return context.getGrantById.load(getId(opts));
 };
 
-const textColumns = Object.keys(grantColumns).reduce((acc, cur) => {
-  if (
-    grantColumns[cur].type == Sequelize.TEXT ||
-    grantColumns[cur].type === Sequelize.STRING
-  ) {
-    return [...acc, cur];
-  }
-  return acc;
-}, []);
+const textColumns = Object.keys(grantColumns).reduce(
+  (acc, cur) => {
+    if (
+      grantColumns[cur].type == Sequelize.TEXT ||
+      grantColumns[cur].type === Sequelize.STRING
+    ) {
+      return [...acc, cur];
+    }
+    return acc;
+  },
+  ['oFromName', 'oToName']
+);
 
 const textLikeArgs = textColumns.reduce(
   (acc, cur) => ({
@@ -253,5 +280,9 @@ export const grantArgs = {
       name: 'TextLike',
       fields: textLikeArgs,
     }),
+  },
+  havingTag: {
+    type: GraphQLString,
+    description: 'Only include grants with the given tag UUID',
   },
 };

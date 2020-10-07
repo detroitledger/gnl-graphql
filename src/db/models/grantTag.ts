@@ -88,10 +88,12 @@ export const grantTagArgs = ledgerListArgs(
 
 interface GrantTagResolverOptions {
   limitToGrantId: boolean;
+  limitToOrganizationId: boolean;
 }
 
 const defaultGrantTagResolverOptions = {
   limitToGrantId: false,
+  limitToOrganizationId: false,
 };
 
 export const grantTagResolver = (
@@ -107,6 +109,13 @@ export const grantTagResolver = (
   // Fetching only grant tags related to a specific grant
   if (resolverOpts.limitToGrantId) {
     where = `WHERE g.id=${escape(opts.dataValues.id)}`;
+  } else if (resolverOpts.limitToOrganizationId) {
+    where = `
+WHERE ggt.grant_id IN (
+  SELECT id FROM "grant" g WHERE g.from=${escape(opts.dataValues.id)}
+  UNION
+  SELECT id FROM "grant" g WHERE g.to=${escape(opts.dataValues.id)}
+)`;
   } else {
     where = uuid ? `WHERE gt.uuid = ${escape(uuid)}` : '';
   }

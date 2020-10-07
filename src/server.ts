@@ -157,7 +157,10 @@ export default function createServer(
       grantTags: {
         type: new GraphQLList(grantTagType),
         args: grantTagArgs,
-        resolve: grantTagResolver(db, { limitToGrantId: true }),
+        resolve: grantTagResolver(db, {
+          limitToGrantId: true,
+          limitToOrganizationId: false,
+        }),
       },
       amount: { type: GraphQLBigInt },
     },
@@ -171,6 +174,7 @@ export default function createServer(
       }),
       from: { type: GraphQLString },
       to: { type: GraphQLString },
+      amount: { type: GraphQLString }, // Ideally this would be GraphQLBigInt but it doesn't seem to work w/ mutation!
     },
   });
 
@@ -246,6 +250,14 @@ export default function createServer(
         type: new GraphQLList(organizationTagType),
         args: organizationTagArgs,
         resolve: organizationTagResolver(db, { limitToOrganizationId: true }),
+      },
+      organizationGrantTags: {
+        type: new GraphQLList(grantTagType),
+        args: grantTagArgs,
+        resolve: grantTagResolver(db, {
+          limitToGrantId: false,
+          limitToOrganizationId: true,
+        }),
       },
     },
   });

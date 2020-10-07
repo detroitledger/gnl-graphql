@@ -28,6 +28,7 @@ import {
   OrganizationTagInstance,
   OrganizationTagAttributes,
 } from './organizationTag';
+import { GrantTagInstance, GrantTagAttributes } from './grantTag';
 import { Form990Instance, Form990Attributes } from './form990';
 import { BoardTermInstance, BoardTermAttributes } from './boardTerm';
 
@@ -354,9 +355,9 @@ export const createGetOrganizationByIdDataloader = (
 
 export const createGetOrganizationByUuidDataloader = (
   db: Db
-): DataLoader<number, OrganizationInstance> => {
+): DataLoader<string, OrganizationInstance> => {
   return new DataLoader(
-    async (uuids: number[]): Promise<OrganizationInstance[]> => {
+    async (uuids: string[]): Promise<OrganizationInstance[]> => {
       const results = await db.sequelize.query(
         `SELECT o.*, ${specialCols(organizationSpecialFields, 'om').join(',')}
   FROM organization o

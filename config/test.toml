@@ -9,3 +9,10 @@ port = 5432
 database = 'gnl_test'
 username = 'gnl'
 password = ''
+
+[google]
+client_id = 'GOOGLE_CLIENT_ID'
+client_secret = 'GOOGLE_CLIENT_SECRET'
+
+[auth]
+allowed_emails = 'good@user'

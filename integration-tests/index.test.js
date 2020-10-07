@@ -1,4 +1,4 @@
-import { request } from 'graphql-request';
+import { request, GraphQLClient } from 'graphql-request';
 import { promisify } from 'util';
 
 import createServer from '../dist/server';
@@ -11,9 +11,21 @@ import * as moreMeta from './test-queries/more-meta';
 import * as orgNameLike from './test-queries/org-name-like';
 import * as sortOrgGrantsByDate from './test-queries/sort-org-grants-by-date';
 
+jest.mock('google-auth-library');
+import { OAuth2Client } from 'google-auth-library';
+
+OAuth2Client.mockImplementation(() => ({
+  verifyIdToken: jest.fn().mockImplementation(({ idToken }) => ({
+    getPayload: () => ({
+      email: idToken === 'good user' ? 'good@user' : 'bad@user',
+    }),
+  })),
+}));
+
 const createServerInstance = async () => {
   const db = dbFactory();
-  const server = createServer(db);
+  const oauthClient = new OAuth2Client('client id');
+  const server = createServer(db, oauthClient);
   const instance = await server.start();
   const { port } = instance.address();
 
@@ -151,7 +163,7 @@ test('sorts organization grants by date', async () => {
   instance.close();
 });
 
-test('filter organization grants funded/received by name', async () => {
+test('filter organization grants funded/received by description', async () => {
   const { uri, instance } = await createServerInstance();
 
   const res = await request(
@@ -188,6 +200,168 @@ query filterOrganizationGrants {
   instance.close();
 });
 
+test('filter organization grants funded/received by name', async () => {
+  const { uri, instance } = await createServerInstance();
+
+  const res = await request(
+    uri,
+    `
+query filterOrganizationGrants {
+  organization(id: 93) {
+    grantsFunded(
+      limit: 10,
+      orderByDirection: ASC,
+      orderBy: dateFrom,
+      textLike: { oToName: "test organization 8%" }
+    ) {
+      to { name }
+    }
+  }
+}
+`
+  );
+
+  expect(res).toEqual({
+    organization: {
+      grantsFunded: [
+        {
+          to: {
+            name: 'test organization 89',
+          },
+        },
+        {
+          to: {
+            name: 'test organization 88',
+          },
+        },
+        {
+          to: {
+            name: 'test organization 87',
+          },
+        },
+        {
+          to: {
+            name: 'test organization 86',
+          },
+        },
+        {
+          to: {
+            name: 'test organization 85',
+          },
+        },
+        {
+          to: {
+            name: 'test organization 84',
+          },
+        },
+      ],
+    },
+  });
+
+  instance.close();
+});
+
+test('filter organization grants funded/received by grant tag', async () => {
+  const { uri, instance, db } = await createServerInstance();
+
+  const grants = await request(
+    uri,
+    `
+query filterOrganizationGrants {
+  organization(id: 93) {
+    grantsFunded(
+      limit: 10,
+      orderByDirection: ASC,
+      orderBy: dateFrom,
+      textLike: { oToName: "test organization 8%" }
+    ) {
+      uuid
+    }
+  }
+}`
+  );
+
+  // Make a new grant tag, and tag one of this org's grants w that tag
+  const newGrantTag = await db.GrantTag.create({
+    name: 'new grant tag',
+    description: 'just for org id 93 ;)',
+  });
+
+  const grant = await db.Grant.findOne({
+    where: { uuid: grants.organization.grantsFunded[0].uuid },
+  });
+  grant.setGrantGrantTag([newGrantTag]);
+  await grant.save();
+
+  const res = await request(
+    uri,
+    `
+query filterOrganizationGrants {
+  organization(id: 93) {
+    grantsFunded(
+      limit: 10,
+      orderByDirection: ASC,
+      orderBy: dateFrom,
+      havingTag: "${newGrantTag.uuid}"
+    ) {
+      uuid
+    }
+  }
+}
+`
+  );
+
+  expect(res).toEqual({
+    organization: {
+      grantsFunded: [
+        {
+          uuid: grant.uuid,
+        },
+      ],
+    },
+  });
+
+  instance.close();
+});
+
+test("list grant tags related to a specific organization's grants", async () => {
+  const { uri, instance } = await createServerInstance();
+
+  const res = await request(
+    uri,
+    `
+query organizationGrantTags {
+  organization(id: 92) {
+    organizationGrantTags {
+      name
+    }
+  }
+}
+`
+  );
+
+  expect(res).toEqual({
+    organization: {
+      organizationGrantTags: [
+        {
+          name: 'test grant tag 0',
+        },
+        {
+          name: 'test grant tag 1',
+        },
+        {
+          name: 'test grant tag 2',
+        },
+        {
+          name: 'test grant tag 3',
+        },
+      ],
+    },
+  });
+
+  instance.close();
+});
+
 test('stats', async () => {
   const { uri, instance } = await createServerInstance();
 
@@ -208,8 +382,55 @@ query homepage {
     stats: {
       totalNumOrgs: 100,
       totalNumGrants: 738,
-      totalGrantsDollars: 49800
-    }
+      totalGrantsDollars: 49800,
+    },
+  });
+
+  instance.close();
+});
+
+test('mutation', async () => {
+  const { uri, instance } = await createServerInstance();
+
+  const client = new GraphQLClient(uri, {
+    headers: {
+      'X-Auth-Token': 'good user',
+    },
+  });
+
+  const twoOrgs = await client.request(`
+query twoOrgs {
+  organizations(
+    limit: 2
+    offset: 0
+    orderBy: totalReceived
+    orderByDirection: DESC
+  ) {
+    uuid
+  }
+}
+  `);
+
+  const res = await client.request(
+    `
+mutation addstuff {
+  addGrant(input: {
+    from: "${twoOrgs.organizations[0].uuid}"
+    to: "${twoOrgs.organizations[1].uuid}"
+    dateTo: "2019-02-01"
+    dateFrom: "2019-01-01"
+    amount: "123"
+  }) {
+    amount
+  }
+}
+`
+  );
+
+  expect(res).toEqual({
+    addGrant: {
+      amount: 123,
+    },
   });
 
   instance.close();
