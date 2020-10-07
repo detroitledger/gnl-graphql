@@ -261,6 +261,69 @@ query filterOrganizationGrants {
   instance.close();
 });
 
+test('filter organization grants funded/received by grant tag', async () => {
+  const { uri, instance, db } = await createServerInstance();
+
+  const grants = await request(
+    uri,
+    `
+query filterOrganizationGrants {
+  organization(id: 93) {
+    grantsFunded(
+      limit: 10,
+      orderByDirection: ASC,
+      orderBy: dateFrom,
+      textLike: { oToName: "test organization 8%" }
+    ) {
+      uuid
+    }
+  }
+}`
+  );
+
+  // Make a new grant tag, and tag one of this org's grants w that tag
+  const newGrantTag = await db.GrantTag.create({
+    name: 'new grant tag',
+    description: 'just for org id 93 ;)',
+  });
+
+  const grant = await db.Grant.findOne({
+    where: { uuid: grants.organization.grantsFunded[0].uuid },
+  });
+  grant.setGrantGrantTag([newGrantTag]);
+  await grant.save();
+
+  const res = await request(
+    uri,
+    `
+query filterOrganizationGrants {
+  organization(id: 93) {
+    grantsFunded(
+      limit: 10,
+      orderByDirection: ASC,
+      orderBy: dateFrom,
+      havingTag: "${newGrantTag.uuid}"
+    ) {
+      uuid
+    }
+  }
+}
+`
+  );
+
+  expect(res).toEqual({
+    organization: {
+      grantsFunded: [
+        {
+          uuid: grant.uuid,
+        },
+      ],
+    },
+  });
+
+  instance.close();
+});
+
 test("list grant tags related to a specific organization's grants", async () => {
   const { uri, instance } = await createServerInstance();
 
