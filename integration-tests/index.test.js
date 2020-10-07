@@ -1,4 +1,4 @@
-import { request } from 'graphql-request';
+import { request, GraphQLClient } from 'graphql-request';
 import { promisify } from 'util';
 
 import createServer from '../dist/server';
@@ -11,9 +11,21 @@ import * as moreMeta from './test-queries/more-meta';
 import * as orgNameLike from './test-queries/org-name-like';
 import * as sortOrgGrantsByDate from './test-queries/sort-org-grants-by-date';
 
+jest.mock('google-auth-library');
+import { OAuth2Client } from 'google-auth-library';
+
+OAuth2Client.mockImplementation(() => ({
+  verifyIdToken: jest.fn().mockImplementation(({ idToken }) => ({
+    getPayload: () => ({
+      email: idToken === 'good user' ? 'good@user' : 'bad@user',
+    }),
+  })),
+}));
+
 const createServerInstance = async () => {
   const db = dbFactory();
-  const server = createServer(db);
+  const oauthClient = new OAuth2Client('client id');
+  const server = createServer(db, oauthClient);
   const instance = await server.start();
   const { port } = instance.address();
 
@@ -308,6 +320,53 @@ query homepage {
       totalNumOrgs: 100,
       totalNumGrants: 738,
       totalGrantsDollars: 49800,
+    },
+  });
+
+  instance.close();
+});
+
+test('mutation', async () => {
+  const { uri, instance } = await createServerInstance();
+
+  const client = new GraphQLClient(uri, {
+    headers: {
+      'X-Auth-Token': 'good user',
+    },
+  });
+
+  const twoOrgs = await client.request(`
+query twoOrgs {
+  organizations(
+    limit: 2
+    offset: 0
+    orderBy: totalReceived
+    orderByDirection: DESC
+  ) {
+    uuid
+  }
+}
+  `);
+
+  const res = await client.request(
+    `
+mutation addstuff {
+  addGrant(input: {
+    from: "${twoOrgs.organizations[0].uuid}"
+    to: "${twoOrgs.organizations[1].uuid}"
+    dateTo: "2019-02-01"
+    dateFrom: "2019-01-01"
+    amount: "123"
+  }) {
+    amount
+  }
+}
+`
+  );
+
+  expect(res).toEqual({
+    addGrant: {
+      amount: 123,
     },
   });
 

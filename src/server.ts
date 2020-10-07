@@ -174,6 +174,7 @@ export default function createServer(
       }),
       from: { type: GraphQLString },
       to: { type: GraphQLString },
+      amount: { type: GraphQLString }, // Ideally this would be GraphQLBigInt but it doesn't seem to work w/ mutation!
     },
   });
 
