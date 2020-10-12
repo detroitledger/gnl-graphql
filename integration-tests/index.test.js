@@ -435,3 +435,76 @@ mutation addstuff {
 
   instance.close();
 });
+
+test('related grants', async () => {
+  const { uri, instance } = await createServerInstance();
+
+  // Get a grant ID
+  const grantId = await request(
+    uri,
+    `
+query grantId {
+  organizations(
+    nameLike: "%Test Organization 97%"
+    limit: 1
+    orderBy: countGrantsTo
+    orderByDirection: DESC
+  ) {
+    grantsFunded(limit: 1) {
+      uuid
+    }
+  }
+}
+  `
+  );
+
+  // Now find some related grantsa
+  const res = await request(
+    uri,
+    `
+query grant {
+  grant(uuid: "${grantId.organizations[0].grantsFunded[0].uuid}") {
+    relatedFrom(limit: 3) {
+      to {
+        name
+      }
+      from {
+        name
+      }
+    }
+  }
+}
+  `
+  );
+
+  expect(res).toEqual({
+    grant: {
+      relatedFrom: [
+        {
+          to: {
+            name: 'test organization 96',
+          },
+          from: {
+            name: 'test organization 97',
+          },
+        },
+        {
+          to: {
+            name: 'test organization 95',
+          },
+          from: {
+            name: 'test organization 97',
+          },
+        },
+        {
+          to: {
+            name: 'test organization 94',
+          },
+          from: {
+            name: 'test organization 97',
+          },
+        },
+      ],
+    },
+  });
+});
