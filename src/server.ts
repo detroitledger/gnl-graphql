@@ -73,6 +73,25 @@ export default function createServer(
     fields: attributeFields(db.Organization, { exclude: ['id'] }),
   });
 
+  const shallowGrantType = new GraphQLObjectType({
+    name: 'ShallowGrant',
+    description: 'A grant, without tags or related org grants',
+    fields: {
+      ...attributeFields(db.Grant, { exclude: ['id'] }),
+      from: {
+        type: shallowOrganizationType,
+        args: organizationArgs,
+        resolve: singleOrganizationResolver(opts => opts.get('from')),
+      },
+      to: {
+        type: shallowOrganizationType,
+        args: organizationArgs,
+        resolve: singleOrganizationResolver(opts => opts.get('to')),
+      },
+      amount: { type: GraphQLBigInt },
+    },
+  });
+
   const organizationTagType = new GraphQLObjectType({
     name: 'OrganizationTag',
     description: 'Tag associated with an organization',
@@ -163,6 +182,16 @@ export default function createServer(
         }),
       },
       amount: { type: GraphQLBigInt },
+      relatedFrom: {
+        type: new GraphQLList(shallowGrantType),
+        args: grantArgs,
+        resolve: grantResolver(db, opts => `g.from=${opts.get('from')}`),
+      },
+      relatedTo: {
+        type: new GraphQLList(shallowGrantType),
+        args: grantArgs,
+        resolve: grantResolver(db, opts => `g.to=${opts.get('to')}`),
+      },
     },
   });
 
