@@ -67,10 +67,23 @@ export default function createServer(
   resolver.contextToOptions = { [EXPECTED_OPTIONS_KEY]: EXPECTED_OPTIONS_KEY };
 
   // Types
+  const form990Type = new GraphQLObjectType({
+    name: 'Form990',
+    description: 'One row from the IRS combined table',
+    fields: attributeFields(db.Form990),
+  });
+
   const shallowOrganizationType = new GraphQLObjectType({
     name: 'ShallowOrganization',
     description: 'An organization, without grants funded or received',
-    fields: attributeFields(db.Organization, { exclude: ['id'] }),
+    fields: {
+      ...attributeFields(db.Organization, { exclude: ['id'] }),
+      forms990: {
+        type: new GraphQLList(form990Type),
+        // @ts-ignore
+        resolve: resolver(db.Organization.Forms990),
+      },
+    },
   });
 
   const shallowGrantType = new GraphQLObjectType({
@@ -205,12 +218,6 @@ export default function createServer(
       to: { type: GraphQLString },
       amount: { type: GraphQLString }, // Ideally this would be GraphQLBigInt but it doesn't seem to work w/ mutation!
     },
-  });
-
-  const form990Type = new GraphQLObjectType({
-    name: 'Form990',
-    description: 'One row from the IRS combined table',
-    fields: attributeFields(db.Form990),
   });
 
   const newsType = new GraphQLObjectType({
