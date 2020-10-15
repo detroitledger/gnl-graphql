@@ -119,8 +119,8 @@ export default function createServer(
     },
   });
 
-  const nteeOrganizationTypeType = new GraphQLObjectType({
-    name: 'NteeOrganizationType',
+  const shallowNteeOrganizationTypeType = new GraphQLObjectType({
+    name: 'ShallowNteeOrganizationType',
     description: 'NTEE classification of an organization',
     fields: {
       ...attributeFields(db.NteeOrganizationType, { exclude: ['id'] }),
@@ -269,7 +269,7 @@ export default function createServer(
         resolve: resolver(db.Organization.News),
       },
       nteeOrganizationTypes: {
-        type: new GraphQLList(nteeOrganizationTypeType),
+        type: new GraphQLList(shallowNteeOrganizationTypeType),
         args: nteeOrganizationTypeArgs,
         resolve: nteeOrganizationTypeResolver(db, {
           limitToOrganizationId: true,
@@ -287,6 +287,29 @@ export default function createServer(
           limitToGrantId: false,
           limitToOrganizationId: true,
         }),
+      },
+    },
+  });
+
+  const nteeOrganizationTypeType = new GraphQLObjectType({
+    name: 'NteeOrganizationType',
+    description:
+      'NTEE classification of an organization, with related organizations',
+    fields: {
+      ...attributeFields(db.NteeOrganizationType, { exclude: ['id'] }),
+      ...nteeOrganizationTypeSpecialFields,
+      organizations: {
+        type: new GraphQLList(shallowOrganizationType),
+        args: organizationArgs,
+        resolve: organizationResolver(
+          db,
+          opts => `
+INNER JOIN organization_ntee_organization_type onot
+  ON o.id=onot.organization_id
+INNER JOIN ntee_organization_type n_o_t
+  ON n_o_t.id=onot.ntee_organization_type_id AND n_o_t.id=${opts.id}
+`
+        ),
       },
     },
   });

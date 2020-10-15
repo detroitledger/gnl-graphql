@@ -507,4 +507,156 @@ query grant {
       ],
     },
   });
+
+  instance.close();
+});
+
+test('ntee orgs', async () => {
+  const { uri, instance } = await createServerInstance();
+
+  const res = await request(
+    uri,
+    `
+query ntee {
+  nteeOrganizationTypes(limit: 1, offset: 3) {
+    name
+    organizations(limit: 1000) {
+      name
+    }
+  }
+}
+`
+  );
+
+  expect(res).toEqual({
+    nteeOrganizationTypes: [
+      {
+        name: 'test ntee organization type 3',
+        organizations: [
+          {
+            name: 'test organization 9',
+          },
+          {
+            name: 'test organization 10',
+          },
+          {
+            name: 'test organization 11',
+          },
+          {
+            name: 'test organization 12',
+          },
+          {
+            name: 'test organization 13',
+          },
+          {
+            name: 'test organization 14',
+          },
+          {
+            name: 'test organization 15',
+          },
+          {
+            name: 'test organization 16',
+          },
+          {
+            name: 'test organization 17',
+          },
+          {
+            name: 'test organization 18',
+          },
+          {
+            name: 'test organization 19',
+          },
+          {
+            name: 'test organization 20',
+          },
+          {
+            name: 'test organization 21',
+          },
+          {
+            name: 'test organization 22',
+          },
+          {
+            name: 'test organization 23',
+          },
+          {
+            name: 'test organization 24',
+          },
+          {
+            name: 'test organization 25',
+          },
+          {
+            name: 'test organization 26',
+          },
+          {
+            name: 'test organization 27',
+          },
+          {
+            name: 'test organization 28',
+          },
+          {
+            name: 'test organization 29',
+          },
+          {
+            name: 'test organization 30',
+          },
+          {
+            name: 'test organization 31',
+          },
+          {
+            name: 'test organization 32',
+          },
+          {
+            name: 'test organization 33',
+          },
+          {
+            name: 'test organization 34',
+          },
+          {
+            name: 'test organization 35',
+          },
+          {
+            name: 'test organization 36',
+          },
+          {
+            name: 'test organization 37',
+          },
+          {
+            name: 'test organization 38',
+          },
+          {
+            name: 'test organization 39',
+          },
+          {
+            name: 'test organization 40',
+          },
+          {
+            name: 'test organization 41',
+          },
+          {
+            name: 'test organization 42',
+          },
+          {
+            name: 'test organization 43',
+          },
+          {
+            name: 'test organization 44',
+          },
+          {
+            name: 'test organization 45',
+          },
+          {
+            name: 'test organization 46',
+          },
+          {
+            name: 'test organization 47',
+          },
+          {
+            name: 'test organization 48',
+          },
+        ],
+      },
+    ],
+  });
+
+  instance.close();
 });
