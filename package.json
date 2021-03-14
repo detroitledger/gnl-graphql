@@ -2,6 +2,9 @@
   "name": "gnl-graphql",
   "version": "0.0.1",
   "description": "graphql server for detroit ledger",
+  "engines": {
+    "node": "10.x"
+  },
   "scripts": {
     "start": "tsc && node dist/scripts/createCsvs.js && node dist/index.js",
     "pretest": "./testrunners/build-lint.sh && ./testrunners/db-setup.sh && ./testrunners/db-seed.sh",
