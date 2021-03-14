@@ -67,10 +67,23 @@ export default function createServer(
   resolver.contextToOptions = { [EXPECTED_OPTIONS_KEY]: EXPECTED_OPTIONS_KEY };
 
   // Types
+  const form990Type = new GraphQLObjectType({
+    name: 'Form990',
+    description: 'One row from the IRS combined table',
+    fields: attributeFields(db.Form990),
+  });
+
   const shallowOrganizationType = new GraphQLObjectType({
     name: 'ShallowOrganization',
     description: 'An organization, without grants funded or received',
-    fields: attributeFields(db.Organization, { exclude: ['id'] }),
+    fields: {
+      ...attributeFields(db.Organization, { exclude: ['id'] }),
+      forms990: {
+        type: new GraphQLList(form990Type),
+        // @ts-ignore
+        resolve: resolver(db.Organization.Forms990),
+      },
+    },
   });
 
   const shallowGrantType = new GraphQLObjectType({
@@ -119,8 +132,8 @@ export default function createServer(
     },
   });
 
-  const nteeOrganizationTypeType = new GraphQLObjectType({
-    name: 'NteeOrganizationType',
+  const shallowNteeOrganizationTypeType = new GraphQLObjectType({
+    name: 'ShallowNteeOrganizationType',
     description: 'NTEE classification of an organization',
     fields: {
       ...attributeFields(db.NteeOrganizationType, { exclude: ['id'] }),
@@ -207,12 +220,6 @@ export default function createServer(
     },
   });
 
-  const form990Type = new GraphQLObjectType({
-    name: 'Form990',
-    description: 'One row from the IRS combined table',
-    fields: attributeFields(db.Form990),
-  });
-
   const newsType = new GraphQLObjectType({
     name: 'News',
     description: 'News related to one or many organizations',
@@ -269,7 +276,7 @@ export default function createServer(
         resolve: resolver(db.Organization.News),
       },
       nteeOrganizationTypes: {
-        type: new GraphQLList(nteeOrganizationTypeType),
+        type: new GraphQLList(shallowNteeOrganizationTypeType),
         args: nteeOrganizationTypeArgs,
         resolve: nteeOrganizationTypeResolver(db, {
           limitToOrganizationId: true,
@@ -287,6 +294,29 @@ export default function createServer(
           limitToGrantId: false,
           limitToOrganizationId: true,
         }),
+      },
+    },
+  });
+
+  const nteeOrganizationTypeType = new GraphQLObjectType({
+    name: 'NteeOrganizationType',
+    description:
+      'NTEE classification of an organization, with related organizations',
+    fields: {
+      ...attributeFields(db.NteeOrganizationType, { exclude: ['id'] }),
+      ...nteeOrganizationTypeSpecialFields,
+      organizations: {
+        type: new GraphQLList(shallowOrganizationType),
+        args: organizationArgs,
+        resolve: organizationResolver(
+          db,
+          opts => `
+INNER JOIN organization_ntee_organization_type onot
+  ON o.id=onot.organization_id
+INNER JOIN ntee_organization_type n_o_t
+  ON n_o_t.id=onot.ntee_organization_type_id AND n_o_t.id=${opts.id}
+`
+        ),
       },
     },
   });

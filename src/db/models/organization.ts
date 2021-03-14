@@ -302,7 +302,9 @@ export const organizationResolver = (db: Db, orgAddJoin?: AddJoin) => async (
   }
 
   const results = await db.sequelize.query(
-    `SELECT o.*, ${specialCols(organizationSpecialFields, 'om').join(',')}
+    `SELECT DISTINCT o.*, ${specialCols(organizationSpecialFields, 'om').join(
+      ','
+    )}
 FROM organization o
 LEFT JOIN organization_meta om ON o.id=om.id
 ${addedJoin}
