@@ -25,7 +25,7 @@
   "addons": [
     "heroku-postgresql"
   ],
-  "stack": "heroku-18",
+  "stack": "heroku-20",
   "buildpacks": [
     {
       "url": "heroku/nodejs"
