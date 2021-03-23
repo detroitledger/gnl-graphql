@@ -17,6 +17,3 @@ ssl = true
 [database.dialectOptions]
 ssl = true
 
-[auth]
-allowed_emails = 'e@mail.com bee@mail.com'
-

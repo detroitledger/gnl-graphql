@@ -1,5 +1,4 @@
 import { request, GraphQLClient } from 'graphql-request';
-import { promisify } from 'util';
 
 import createServer from '../dist/server';
 import dbFactory, * as models from '../dist/db/models';
@@ -389,53 +388,6 @@ query homepage {
   instance.close();
 });
 
-test('mutation', async () => {
-  const { uri, instance } = await createServerInstance();
-
-  const client = new GraphQLClient(uri, {
-    headers: {
-      'X-Auth-Token': 'good user',
-    },
-  });
-
-  const twoOrgs = await client.request(`
-query twoOrgs {
-  organizations(
-    limit: 2
-    offset: 0
-    orderBy: totalReceived
-    orderByDirection: DESC
-  ) {
-    uuid
-  }
-}
-  `);
-
-  const res = await client.request(
-    `
-mutation addstuff {
-  addGrant(input: {
-    from: "${twoOrgs.organizations[0].uuid}"
-    to: "${twoOrgs.organizations[1].uuid}"
-    dateTo: "2019-02-01"
-    dateFrom: "2019-01-01"
-    amount: "123"
-  }) {
-    amount
-  }
-}
-`
-  );
-
-  expect(res).toEqual({
-    addGrant: {
-      amount: 123,
-    },
-  });
-
-  instance.close();
-});
-
 test('related grants', async () => {
   const { uri, instance } = await createServerInstance();
 
@@ -659,4 +611,242 @@ query ntee {
   });
 
   instance.close();
+});
+
+describe('authed mutations', () => {
+  const db = dbFactory();
+
+  let user, user2;
+
+  beforeAll(async () => {
+    user = await db.User.create({
+      name: 'test user',
+      email: 'good@user',
+    });
+    user2 = await db.User.create({
+      name: 'test user 2',
+      email: 'another@user2',
+    });
+  });
+
+  afterAll(async () => {
+    await db.Pdf.destroy({ where: {} });
+    await db.User.destroy({ where: {} });
+  });
+
+  test('add a grant', async () => {
+    const { uri, instance } = await createServerInstance();
+
+    const client = new GraphQLClient(uri, {
+      headers: {
+        'X-Auth-Token': 'good user',
+      },
+    });
+
+    const twoOrgs = await client.request(`
+  query twoOrgs {
+    organizations(
+      limit: 2
+      offset: 0
+      orderBy: totalReceived
+      orderByDirection: DESC
+    ) {
+      uuid
+    }
+  }
+    `);
+
+    const res = await client.request(
+      `
+  mutation addstuff {
+    addGrant(input: {
+      from: "${twoOrgs.organizations[0].uuid}"
+      to: "${twoOrgs.organizations[1].uuid}"
+      dateTo: "2019-02-01"
+      dateFrom: "2019-01-01"
+      amount: "123"
+    }) {
+      amount
+      uuid
+    }
+  }
+  `
+    );
+
+    await db.Grant.destroy({
+      where: {
+        uuid: res.addGrant.uuid,
+      },
+    });
+
+    expect(res).toEqual({
+      addGrant: {
+        amount: 123,
+        uuid: res.addGrant.uuid,
+      },
+    });
+
+    instance.close();
+  });
+
+  describe('user pdfs', () => {
+    let thisUserPdf, anotherUserPdf;
+
+    test('add pdf for active user', async () => {
+      const { uri, instance, db } = await createServerInstance();
+
+      const client = new GraphQLClient(uri, {
+        headers: {
+          'X-Auth-Token': 'good user',
+        },
+      });
+
+      const {
+        organization: { uuid: orgUuid },
+      } = await client.request(
+        `
+query org {
+  organization(id: 93) {
+    uuid
+  }
+}`
+      );
+
+      const res = await client.request(
+        `
+mutation pdf {
+  addPdf(input: {
+    organization: "${orgUuid}"
+    url: "bar"
+    done: true
+    year: 12
+    user: "${user.uuid}"
+  }) {
+    url
+    year
+    done
+    uuid
+    organization {uuid}
+  }
+}
+`
+      );
+
+      expect(res.addPdf).toEqual({
+        url: 'bar',
+        year: 12,
+        done: true,
+        uuid: res.addPdf.uuid,
+        organization: { uuid: orgUuid },
+      });
+
+      thisUserPdf = res.addPdf;
+
+      instance.close();
+    });
+
+    test('add pdf for another user', async () => {
+      const { uri, instance, db } = await createServerInstance();
+
+      const client = new GraphQLClient(uri, {
+        headers: {
+          'X-Auth-Token': 'good user',
+        },
+      });
+
+      const {
+        organization: { uuid: orgUuid },
+      } = await client.request(
+        `
+query org {
+  organization(id: 93) {
+    uuid
+  }
+}`
+      );
+
+      const res = await client.request(
+        `
+mutation pdf {
+  addPdf(input: {
+    organization: "${orgUuid}"
+    url: "baz"
+    done: false
+    year: 13
+    user: "${user2.uuid}"
+  }) {
+    url
+    year
+    done
+    uuid
+    organization {uuid}
+  }
+}
+`
+      );
+
+      expect(res.addPdf).toEqual({
+        url: 'baz',
+        year: 13,
+        done: false,
+        uuid: res.addPdf.uuid,
+        organization: { uuid: orgUuid },
+      });
+
+      anotherUserPdf = res.addPdf;
+
+      instance.close();
+    });
+
+    test('list active user pdfs', async () => {
+      const { uri, instance, db } = await createServerInstance();
+
+      const client = new GraphQLClient(uri, {
+        headers: {
+          'X-Auth-Token': 'good user',
+        },
+      });
+
+      const res = await client.request(
+        `
+query pdfs {
+  pdfs(limitToCurrentUser: true) {
+    uuid
+  }
+}
+`
+      );
+
+      expect(res.pdfs.length).toBe(1);
+      expect(res.pdfs[0].uuid).toEqual(thisUserPdf.uuid);
+
+      instance.close();
+    });
+
+    test('list all pdfs', async () => {
+      const { uri, instance, db } = await createServerInstance();
+
+      const client = new GraphQLClient(uri, {
+        headers: {
+          'X-Auth-Token': 'good user',
+        },
+      });
+
+      const res = await client.request(
+        `
+query pdfs {
+  pdfs(limitToCurrentUser: false) {
+    uuid
+  }
+}
+`
+      );
+
+      expect(res.pdfs.length).toBe(2);
+      expect(res.pdfs[0].uuid).toEqual(thisUserPdf.uuid);
+      expect(res.pdfs[1].uuid).toEqual(anotherUserPdf.uuid);
+
+      instance.close();
+    });
+  });
 });

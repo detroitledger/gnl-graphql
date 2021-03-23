@@ -42,6 +42,12 @@ GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO gnl;
 yarn tsc && node dist/scripts/tagImporter.js
 ```
 
+### Add some admin users
+
+For some reason, `yarn sequelize db:seed <name-of-specific-seed>` doesn't work - we can just invoke the seed manually.
+
+`yarn tsc && node scripts/add-users.js`
+
 ## Seed data & integration tests
 
 Seed data generators are available at `src/db/seeders`. Currently the `test-data` seeder generates a hundred tags for each tag type, a thousand organizations, ten thousand grants, and six thousand rows of IRS data.

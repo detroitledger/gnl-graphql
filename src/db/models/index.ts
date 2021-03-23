@@ -15,6 +15,8 @@ import newsFactory, * as news from './news';
 import organizationFactory, * as organization from './organization';
 import organizationMetaFactory, * as organizationMeta from './organizationMeta';
 import personFactory, * as person from './person';
+import userFactory, * as user from './user';
+import pdfFactory, * as pdf from './pdf';
 
 export interface Db {
   BoardTerm: Sequelize.Model<
@@ -49,6 +51,8 @@ export interface Db {
     organizationTag.OrganizationTagAttributes
   >;
   Person: Sequelize.Model<person.PersonInstance, person.PersonAttributes>;
+  User: Sequelize.Model<user.UserInstance, user.UserAttributes>;
+  Pdf: Sequelize.Model<pdf.PdfInstance, pdf.PdfAttributes>;
   sequelize: Sequelize.Sequelize;
   Sequelize: Sequelize.SequelizeStatic;
 }
@@ -96,6 +100,8 @@ export default function dbFactory(): Db {
     OrganizationMeta: organizationMetaFactory(sequelize),
     OrganizationTag: organizationTagFactory(sequelize),
     Person: personFactory(sequelize),
+    User: userFactory(sequelize),
+    Pdf: pdfFactory(sequelize),
     sequelize,
     Sequelize,
   };
