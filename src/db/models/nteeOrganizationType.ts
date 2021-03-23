@@ -131,11 +131,18 @@ export const nteeOrganizationTypeResolver = (
   }
 
   const results = await db.sequelize.query(
-    `SELECT ot.id, ot.uuid, ot.name, ot.code, ot.description, SUM(gf.amount) as "total_funded", SUM(gr.amount) as "total_received"
+    `
+SELECT
+  ot.id,
+  ot.uuid,
+  ot.name,
+  ot.code,
+  ot.description,
+  SUM(om.total_funded) as "total_funded",
+  SUM(om.total_received) as "total_received"
 FROM ntee_organization_type ot
 LEFT JOIN organization_ntee_organization_type oot ON ot.id=oot.ntee_organization_type_id
-LEFT JOIN "grant" gf ON gf.from=oot.organization_id
-LEFT JOIN "grant" gr ON gr.to=oot.organization_id
+LEFT JOIN organization_meta om ON om.id=oot.organization_id
 ${where}
 GROUP BY ot.id
 ORDER BY "${decamelize(orderBy)}" ${orderByDirection}
