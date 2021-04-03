@@ -123,11 +123,17 @@ export const organizationTagResolver = (
   }
 
   const results = await db.sequelize.query(
-    `SELECT ot.id, ot.uuid, ot.name, ot.description, SUM(gf.amount) as "total_funded", SUM(gr.amount) as "total_received"
+    `
+SELECT
+  ot.id,
+  ot.uuid,
+  ot.name,
+  ot.description,
+  SUM(om.total_funded) as "total_funded",
+  SUM(om.total_received) as "total_received"
 FROM organization_tag ot
 LEFT JOIN organization_organization_tag oot ON ot.id=oot.organization_tag_id
-LEFT JOIN "grant" gf ON gf.from=oot.organization_id
-LEFT JOIN "grant" gr ON gr.to=oot.organization_id
+LEFT JOIN organization_meta om ON om.id=oot.organization_id
 ${where}
 GROUP BY ot.id
 ORDER BY "${decamelize(orderBy)}" ${orderByDirection}
