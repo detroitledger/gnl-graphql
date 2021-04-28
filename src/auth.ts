@@ -48,13 +48,13 @@ export const authenticatedOnly = (
 export const getTokenFromReq = req => req.headers['x-auth-token'];
 
 export const getUserFromToken = async (
-  tok: string,
+  token: string,
   client: OAuth2Client,
   db: Db
 ) => {
-  if (tok) {
+  if (token) {
     try {
-      const user = await verifyToken(tok, client);
+      const user = await verifyToken(token, client);
       const dbUser = await authenticateGoogleUser(user, db);
       return dbUser;
     } catch (e) {
