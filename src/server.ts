@@ -59,6 +59,7 @@ import {
   nteeOrganizationTypeArgs,
   nteeOrganizationTypeSpecialFields,
 } from './db/models/nteeOrganizationType';
+import { pdfResolver, pdfArgs } from './db/models/pdf';
 
 export default function createServer(
   db: Db,
@@ -328,6 +329,41 @@ INNER JOIN ntee_organization_type n_o_t
     }),
   });
 
+  const userType = new GraphQLObjectType({
+    name: 'User',
+    description: 'Someone who manages data',
+    fields: attributeFields(db.User, { exclude: ['id'] }),
+  });
+
+  const pdfType = new GraphQLObjectType({
+    name: 'PdfType',
+    description:
+      'A PDF containing records related to an organization for a certain year (probably an IRS Form 990)',
+    fields: {
+      ...attributeFields(db.Pdf, { exclude: ['id'] }),
+      organization: {
+        type: shallowOrganizationType,
+        args: organizationArgs,
+        resolve: singleOrganizationResolver(opts => opts.get('organization')),
+      },
+      user: {
+        type: userType,
+        resolve: resolver(db.User),
+      },
+    },
+  });
+
+  const pdfInputType = new GraphQLInputObjectType({
+    name: 'PdfInput',
+    fields: {
+      ...attributeFields(db.Pdf, {
+        exclude: ['id', 'uuid', 'created_at', 'updated_at'],
+      }),
+      user: { type: GraphQLString },
+      organization: { type: GraphQLString },
+    },
+  });
+
   return new GraphQLServer({
     schema: new GraphQLSchema({
       query: new GraphQLObjectType({
@@ -420,6 +456,15 @@ INNER JOIN ntee_organization_type n_o_t
             args: grantTagArgs,
             resolve: grantTagResolver(db),
           },
+          pdfs: {
+            type: new GraphQLList(pdfType),
+            args: pdfArgs,
+            resolve: pdfResolver(db),
+          },
+          users: {
+            type: new GraphQLList(userType),
+            resolve: resolver(db.User),
+          },
         },
       }),
       mutation: new GraphQLObjectType({
@@ -433,11 +478,12 @@ INNER JOIN ntee_organization_type n_o_t
             resolve: async (source, { input }, context) => {
               const authenticatedUser = await getUserFromToken(
                 context.token,
-                context.oauthClient
+                context.oauthClient,
+                db
               );
 
               if (!authenticatedUser) {
-                return null;
+                throw new Error('not authenticated');
               }
 
               const newOrg = await db.Organization.create(input);
@@ -452,11 +498,12 @@ INNER JOIN ntee_organization_type n_o_t
             resolve: async (source, { input }, context) => {
               const authenticatedUser = await getUserFromToken(
                 context.token,
-                context.oauthClient
+                context.oauthClient,
+                db
               );
 
               if (!authenticatedUser) {
-                return null;
+                throw new Error('not authenticated');
               }
 
               const from = await db.Organization.find({
@@ -473,6 +520,39 @@ INNER JOIN ntee_organization_type n_o_t
               });
               return context.dataloader_sequelize_context.loaders.Grant.byId.load(
                 newGrant.id
+              );
+            },
+          },
+          addPdf: {
+            type: pdfType,
+            args: { input: { type: new GraphQLNonNull(pdfInputType) } },
+            resolve: async (source, { input }, context) => {
+              const authenticatedUser = await getUserFromToken(
+                context.token,
+                context.oauthClient,
+                db
+              );
+
+              if (!authenticatedUser) throw new Error('not authenticated');
+
+              const organization = await db.Organization.find({
+                where: { uuid: input.organization },
+              });
+
+              if (!organization) throw new Error('missing organization');
+
+              const user = await db.User.find({
+                where: { uuid: input.user },
+              });
+
+              const newPdf = await db.Pdf.create({
+                ...input,
+                organization: organization!.id,
+                user: user ? user!.id : null,
+              });
+
+              return context.dataloader_sequelize_context.loaders.Pdf.byId.load(
+                newPdf.id
               );
             },
           },

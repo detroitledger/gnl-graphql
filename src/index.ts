@@ -34,9 +34,13 @@ if (!config.get('google.client_id')) {
 server.express.use(
   '/getGoogleUser',
   cors(corsConfig),
-  authenticatedOnly((req, res) => {
-    res.status(200).json({ user: req.user });
-  }, oauthClient)
+  authenticatedOnly(
+    (req, res) => {
+      res.status(200).json({ user: req.user });
+    },
+    oauthClient,
+    db
+  )
 );
 
 // CSV exports

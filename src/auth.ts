@@ -1,6 +1,8 @@
 import * as config from 'config';
 import { OAuth2Client } from 'google-auth-library';
 
+import { Db } from './db/models';
+
 export async function verifyToken(idToken, client: OAuth2Client) {
   const ticket = await client.verifyIdToken({
     idToken,
@@ -10,37 +12,33 @@ export async function verifyToken(idToken, client: OAuth2Client) {
   return payload;
 }
 
-export const authenticateGoogleUser = user =>
-  config
-    .get('auth.allowed_emails')
-    .toString()
-    .split(' ')
-    .includes(user.email);
+export const authenticateGoogleUser = async (user, db) => {
+  const dbUser = await db.User.findOne({ where: { email: user.email } });
+  return dbUser;
+};
 
-export const authenticatedOnly = (handler, client: OAuth2Client) => (
-  req,
-  res
-) => {
+export const authenticatedOnly = (
+  handler,
+  client: OAuth2Client,
+  db: Db
+) => async (req, res) => {
   if (req.headers['x-auth-token']) {
     try {
-      verifyToken(req.headers['x-auth-token'], client)
-        .then(user => {
-          req.user = user;
-          if (authenticateGoogleUser(user)) {
-            handler(req, res);
-          } else {
-            res.status(401).json({ error: 'Not on the list' });
-          }
-        })
-        .catch(e => {
-          if (e.message && e.message.includes('Token used too late')) {
-            res.status(412).json({ error: 'Token expired' });
-          } else {
-            res.status(401).json({ error: 'Unauthorized' });
-          }
-        });
+      const user = await verifyToken(req.headers['x-auth-token'], client);
+
+      req.user = user;
+
+      if (await authenticateGoogleUser(user, db)) {
+        handler(req, res);
+      } else {
+        res.status(401).json({ error: 'Not on the list' });
+      }
     } catch (e) {
-      res.status(500).json({ error: 'Unknown error' });
+      if (e.message && e.message.includes('Token used too late')) {
+        res.status(412).json({ error: 'Token expired' });
+      } else {
+        res.status(401).json({ error: 'Unauthorized' });
+      }
     }
   } else {
     res.status(400).json({ error: 'Missing token' });
@@ -49,13 +47,16 @@ export const authenticatedOnly = (handler, client: OAuth2Client) => (
 
 export const getTokenFromReq = req => req.headers['x-auth-token'];
 
-export const getUserFromToken = async (tok: string, client: OAuth2Client) => {
-  if (tok) {
+export const getUserFromToken = async (
+  token: string,
+  client: OAuth2Client,
+  db: Db
+) => {
+  if (token) {
     try {
-      const user = await verifyToken(tok, client);
-      if (authenticateGoogleUser(user)) {
-        return user;
-      }
+      const user = await verifyToken(token, client);
+      const dbUser = await authenticateGoogleUser(user, db);
+      return dbUser;
     } catch (e) {
       // tough!
     }
