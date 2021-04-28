@@ -6,7 +6,7 @@ import dbFactory, * as models from '../models';
 
 const ADMINS = [
   { name: 'Ben', email: 'anonyben@gmail.com' },
-  { name: 'Matt', email: 'matthew.hampel@gmail.com' },
+  { name: 'Matt', email: 'mahatm@gmail.com' },
   { name: 'Jessica', email: 'jessica.mcinchak@gmail.com' },
 ];
 
