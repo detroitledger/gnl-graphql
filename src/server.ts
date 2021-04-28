@@ -541,18 +541,14 @@ INNER JOIN ntee_organization_type n_o_t
 
               if (!organization) throw new Error('missing organization');
 
-              const user = input.user
-                ? await db.User.find({
-                    where: { uuid: input.user },
-                  })
-                : authenticatedUser;
-
-              if (!user) throw new Error('missing user');
+              const user = await db.User.find({
+                where: { uuid: input.user },
+              });
 
               const newPdf = await db.Pdf.create({
                 ...input,
                 organization: organization!.id,
-                user: user!.id,
+                user: user ? user!.id : null,
               });
 
               return context.dataloader_sequelize_context.loaders.Pdf.byId.load(
