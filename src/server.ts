@@ -456,6 +456,14 @@ INNER JOIN ntee_organization_type n_o_t
             args: grantTagArgs,
             resolve: grantTagResolver(db),
           },
+          pdf: {
+            type: pdfType,
+            args: defaultArgs({
+              ...db.Pdf,
+              primaryKeyAttributes: ['id', 'uuid'],
+            }),
+            resolve: resolver(db.Pdf),
+          },
           pdfs: {
             type: new GraphQLList(pdfType),
             args: pdfArgs,
