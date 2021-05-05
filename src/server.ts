@@ -60,6 +60,11 @@ import {
   nteeOrganizationTypeSpecialFields,
 } from './db/models/nteeOrganizationType';
 import { pdfResolver, pdfArgs } from './db/models/pdf';
+import {
+  singleUserResolver,
+  createGetUserByIdDataloader,
+  createGetUserByUuidDataloader,
+} from './db/models/user';
 
 export default function createServer(
   db: Db,
@@ -336,7 +341,7 @@ INNER JOIN ntee_organization_type n_o_t
   });
 
   const pdfType = new GraphQLObjectType({
-    name: 'PdfType',
+    name: 'Pdf',
     description:
       'A PDF containing records related to an organization for a certain year (probably an IRS Form 990)',
     fields: {
@@ -348,7 +353,7 @@ INNER JOIN ntee_organization_type n_o_t
       },
       user: {
         type: userType,
-        resolve: resolver(db.User),
+        resolve: singleUserResolver(opts => opts.get('user')),
       },
     },
   });
@@ -572,6 +577,8 @@ INNER JOIN ntee_organization_type n_o_t
       const dataloaderContext = createContext(db.sequelize);
       const getOrganizationById = createGetOrganizationByIdDataloader(db);
       const getOrganizationByUuid = createGetOrganizationByUuidDataloader(db);
+      const getUserById = createGetUserByIdDataloader(db);
+      const getUserByUuid = createGetUserByUuidDataloader(db);
 
       const token = getTokenFromReq(ctx.request);
 
@@ -581,6 +588,8 @@ INNER JOIN ntee_organization_type n_o_t
         [EXPECTED_OPTIONS_KEY]: dataloaderContext,
         getOrganizationById,
         getOrganizationByUuid,
+        getUserById,
+        getUserByUuid,
         token,
         oauthClient,
       };
