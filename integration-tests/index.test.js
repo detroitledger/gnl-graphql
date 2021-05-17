@@ -715,7 +715,7 @@ query org {
       const res = await client.request(
         `
 mutation pdf {
-  addPdf(input: {
+  upsertPdf(input: {
     organization: "${orgUuid}"
     url: "bar"
     done: true
@@ -732,15 +732,15 @@ mutation pdf {
 `
       );
 
-      expect(res.addPdf).toEqual({
+      expect(res.upsertPdf).toEqual({
         url: 'bar',
         year: 12,
         done: true,
-        uuid: res.addPdf.uuid,
+        uuid: res.upsertPdf.uuid,
         organization: { uuid: orgUuid },
       });
 
-      thisUserPdf = res.addPdf;
+      thisUserPdf = res.upsertPdf;
 
       instance.close();
     });
@@ -768,7 +768,7 @@ query org {
       const res = await client.request(
         `
 mutation pdf {
-  addPdf(input: {
+  upsertPdf(input: {
     organization: "${orgUuid}"
     url: "baz"
     done: false
@@ -785,15 +785,15 @@ mutation pdf {
 `
       );
 
-      expect(res.addPdf).toEqual({
+      expect(res.upsertPdf).toEqual({
         url: 'baz',
         year: 13,
         done: false,
-        uuid: res.addPdf.uuid,
+        uuid: res.upsertPdf.uuid,
         organization: { uuid: orgUuid },
       });
 
-      anotherUserPdf = res.addPdf;
+      anotherUserPdf = res.upsertPdf;
 
       instance.close();
     });
@@ -848,5 +848,51 @@ query pdfs {
 
       instance.close();
     });
+
+    test('update pdf', async () => {
+      const { uri, instance, db } = await createServerInstance();
+
+      const client = new GraphQLClient(uri, {
+        headers: {
+          'X-Auth-Token': 'good user',
+        },
+      });
+
+      // Get a PDF
+      const initial = await client.request(
+        `
+query pdfs {
+  pdfs(limitToCurrentUser: true, limit: 1) {
+    uuid
+    organization { uuid }
+    user { uuid }
+    url
+    done
+    year
+  }
+}
+`
+      );
+
+      // Change its date
+      const updated = await client.request(
+        `
+mutation pdf {
+  upsertPdf(input: {
+    uuid: "${initial.pdfs[0].uuid}"
+    organization: "${initial.pdfs[0].organization.uuid}"
+    user: "${initial.pdfs[0].user.uuid}"
+    url: "${initial.pdfs[0].url}"
+    done: ${initial.pdfs[0].done}
+    year: ${initial.pdfs[0].year - 1}
+  }) {
+    year
+  }
+}
+`
+      );
+
+      expect(updated.upsertPdf.year).toEqual(initial.pdfs[0].year - 1);
+    })
   });
 });

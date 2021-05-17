@@ -60,6 +60,11 @@ import {
   nteeOrganizationTypeSpecialFields,
 } from './db/models/nteeOrganizationType';
 import { pdfResolver, pdfArgs } from './db/models/pdf';
+import {
+  singleUserResolver,
+  createGetUserByIdDataloader,
+  createGetUserByUuidDataloader,
+} from './db/models/user';
 
 export default function createServer(
   db: Db,
@@ -336,7 +341,7 @@ INNER JOIN ntee_organization_type n_o_t
   });
 
   const pdfType = new GraphQLObjectType({
-    name: 'PdfType',
+    name: 'Pdf',
     description:
       'A PDF containing records related to an organization for a certain year (probably an IRS Form 990)',
     fields: {
@@ -348,7 +353,7 @@ INNER JOIN ntee_organization_type n_o_t
       },
       user: {
         type: userType,
-        resolve: resolver(db.User),
+        resolve: singleUserResolver(opts => opts.get('user')),
       },
     },
   });
@@ -357,7 +362,7 @@ INNER JOIN ntee_organization_type n_o_t
     name: 'PdfInput',
     fields: {
       ...attributeFields(db.Pdf, {
-        exclude: ['id', 'uuid', 'created_at', 'updated_at'],
+        exclude: ['id', 'created_at', 'updated_at'],
       }),
       user: { type: GraphQLString },
       organization: { type: GraphQLString },
@@ -456,6 +461,14 @@ INNER JOIN ntee_organization_type n_o_t
             args: grantTagArgs,
             resolve: grantTagResolver(db),
           },
+          pdf: {
+            type: pdfType,
+            args: defaultArgs({
+              ...db.Pdf,
+              primaryKeyAttributes: ['id', 'uuid'],
+            }),
+            resolve: resolver(db.Pdf),
+          },
           pdfs: {
             type: new GraphQLList(pdfType),
             args: pdfArgs,
@@ -523,7 +536,7 @@ INNER JOIN ntee_organization_type n_o_t
               );
             },
           },
-          addPdf: {
+          upsertPdf: {
             type: pdfType,
             args: { input: { type: new GraphQLNonNull(pdfInputType) } },
             resolve: async (source, { input }, context) => {
@@ -545,15 +558,21 @@ INNER JOIN ntee_organization_type n_o_t
                 where: { uuid: input.user },
               });
 
-              const newPdf = await db.Pdf.create({
+              const upsert = {
                 ...input,
                 organization: organization!.id,
                 user: user ? user!.id : null,
-              });
+              };
 
-              return context.dataloader_sequelize_context.loaders.Pdf.byId.load(
-                newPdf.id
-              );
+              if (upsert.uuid) {
+                const upserted = await db.Pdf.update(upsert, {
+                  where: { uuid: upsert.uuid },
+                  returning: true,
+                });
+                return upserted[1][0];
+              } else {
+                return await db.Pdf.create(upsert);
+              }
             },
           },
         }),
@@ -564,6 +583,8 @@ INNER JOIN ntee_organization_type n_o_t
       const dataloaderContext = createContext(db.sequelize);
       const getOrganizationById = createGetOrganizationByIdDataloader(db);
       const getOrganizationByUuid = createGetOrganizationByUuidDataloader(db);
+      const getUserById = createGetUserByIdDataloader(db);
+      const getUserByUuid = createGetUserByUuidDataloader(db);
 
       const token = getTokenFromReq(ctx.request);
 
@@ -573,6 +594,8 @@ INNER JOIN ntee_organization_type n_o_t
         [EXPECTED_OPTIONS_KEY]: dataloaderContext,
         getOrganizationById,
         getOrganizationByUuid,
+        getUserById,
+        getUserByUuid,
         token,
         oauthClient,
       };

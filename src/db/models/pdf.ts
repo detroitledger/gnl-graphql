@@ -113,7 +113,7 @@ export const pdfResolver = (db: Db) => async (
   }
 
   const results = await db.sequelize.query(
-    `SELECT p.id, p.uuid, p.url, p.done, p.year, p.current_page, p.user, p.organization
+    `SELECT p.id, p.uuid, p.url, p.done, p.year, p.current_page, p.user, p.organization, p.created_at, p.updated_at
 FROM pdf p
 ${where}
 ORDER BY "${decamelize(orderBy)}" ${orderByDirection}
